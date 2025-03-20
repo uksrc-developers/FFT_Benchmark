@@ -3,9 +3,9 @@
 //
 #include "../include/cuFFT_Class.hpp"
 
-cuFFT_Class::cuFFT_Class(float memory_size){ // memory_size given in MB
+cuFFT_Class::cuFFT_Class(const float memory_size){ // memory_size given in MB
     vector_side = possible_vector_size(memory_size);
-    vector_element_count = pow(vector_side, 2);
+    vector_element_count = static_cast<int>(pow(vector_side, 2));
     vector_memory_size = (vector_element_count*sizeof(std::complex<double>));
 
     size_t workEstimate = 0;
@@ -23,17 +23,17 @@ cuFFT_Class::cuFFT_Class(float memory_size){ // memory_size given in MB
     if ( mf < ( workEstimate + vector_memory_size ) ){
         split = true;
         int split_element_count = vector_element_count/2;
-        int mult = 2;
+        int mult;
         if ( workEstimate < (split_element_count*sizeof(std::complex<double>))/2 || workEstimate > (split_element_count*sizeof(std::complex<double>))/2 ){
             mult = 7;
         } else {
             mult = 2;
         }
-        cufftEstimate2d(int(sqrt(split_element_count)), int(sqrt(split_element_count)), CUFFT_Z2Z, &workEstimate);
+        cufftEstimate2d(static_cast<int>(sqrt(split_element_count)), static_cast<int>(sqrt(split_element_count)), CUFFT_Z2Z, &workEstimate);
         while ( mf*3/4 < ( workEstimate + split_element_count )*mult ){
             split_count++;
             split_element_count = split_element_count/2;
-            cufftEstimate2d(int(sqrt(split_element_count)), int(sqrt(split_element_count)), CUFFT_Z2Z, &workEstimate);
+            cufftEstimate2d(static_cast<int>(sqrt(split_element_count)), static_cast<int>(sqrt(split_element_count)), CUFFT_Z2Z, &workEstimate);
             if ( workEstimate < (split_element_count*sizeof(std::complex<double>))/2 || workEstimate > (split_element_count*sizeof(std::complex<double>)) ){
                 mult = 7;
             } else {
@@ -51,7 +51,7 @@ void cuFFT_Class::stream_fft(){
     int Npartial = vector_element_count / Nsplits;
     size_t mf, ma;
     cudaMemGetInfo(&mf, &ma);
-    while ( pow(vector_side/Nsplits, 2)*sizeof(std::complex<double>) < mf/7 ){
+    while ( pow(vector_side/Nsplits, 2)*sizeof(std::complex<double>) < static_cast<double>(mf)/7 ){
         Nsplits++;
         Npartial = vector_element_count / Nsplits;
     }
@@ -96,11 +96,10 @@ void cuFFT_Class::stream_fft(){
     free(out_data);
 }
 
-void cuFFT_Class::split_fft(std::complex<double> **data, int element_count){
+void cuFFT_Class::split_fft(std::complex<double> **data, const int element_count){
     split_count--;
     assert((void("Transform needed to be split, but was not splittable evenly."), (element_count%2 <= 0) ));
-    int split_element_count = element_count/2;
-    int mult = 2;
+    const int split_element_count = element_count/2;
 
     std::complex<double> *even;
     cudaMallocManaged(
@@ -182,8 +181,8 @@ std::chrono::duration<double, std::milli> cuFFT_Class::time_transform(int runs) 
 void cuFFT_Class::create_preplot(const std::string& file_name){
     matplotlibcpp::figure_size(1200, 780);
     const int colors = 1;
-    matplotlibcpp::title(std::to_string(vector_memory_size/1000000.0) + "[MB] not transformed");
-    std::vector<float> plot_vector = pre_plot_vector(source_data, vector_element_count);
+    matplotlibcpp::title(std::to_string(static_cast<double>(vector_memory_size)/1000000.0) + "[MB] not transformed");
+    const std::vector<float> plot_vector = pre_plot_vector(source_data, vector_element_count);
     matplotlibcpp::imshow(&(plot_vector[0]),
                           vector_side,
                           vector_side,
@@ -195,8 +194,8 @@ void cuFFT_Class::create_preplot(const std::string& file_name){
 void cuFFT_Class::create_postplot(const std::string& file_name){
     plt::figure_size(1200, 780);
     const int colors = 1;
-    plt::title(std::to_string(vector_memory_size/1000000.0) + "[MB] " + name() + " transformed");
-    std::vector<float> plot_vector = post_plot_vector(source_data, vector_element_count);
+    plt::title(std::to_string(static_cast<double>(vector_memory_size)/1000000.0) + "[MB] " + name() + " transformed");
+    const std::vector<float> plot_vector = post_plot_vector(source_data, vector_element_count);
     plt::imshow(&(plot_vector[0]),
                 vector_side,
                 vector_side, colors,

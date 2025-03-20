@@ -10,6 +10,8 @@
 
 class Abstract_FFT {
 public:
+    virtual ~Abstract_FFT() = default;
+
     virtual inline std::string name() = 0;
     virtual void transform() = 0;
     virtual std::chrono::duration<double, std::milli> time_transform(int runs) = 0;

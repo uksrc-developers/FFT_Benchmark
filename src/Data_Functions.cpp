@@ -81,7 +81,7 @@ std::vector<float> pre_plot_vector(std::complex<double>* v, const int element_co
     plot_vector.resize(element_count);
 #pragma omp parallel for
     for (int i = 0; i < element_count; i++)
-        plot_vector[i] = abs(v[i]);
+        plot_vector[i] = static_cast<float>(abs(v[i]));
     return plot_vector;
 }
 
@@ -91,7 +91,7 @@ std::vector<float> post_plot_vector(std::complex<double>* v, int element_count){
     int dim = int(sqrt(element_count));
 #pragma omp parallel for
     for (int i = 0; i < element_count; i++)
-        plot_vector[i] = abs(v[i]);
+        plot_vector[i] = static_cast<float>(abs(v[i]));
     if ( dim%2 == 0){
         std::rotate(plot_vector.rbegin(), plot_vector.rbegin() + int(element_count/2), plot_vector.rend());
     } else {
@@ -119,8 +119,8 @@ void print_data(std::complex<double>* v, const int element_count){
     std::cout<<"\n";
 }
 
-void compare_data(std::complex<double>* v, int element_count){
-    std::complex<double> sum = 0;
+void compare_data(const std::complex<double>* v, const int element_count){
+    std::complex<double> sum = {0, 0};
     for (int i = 0; i < compare_length; i++){
         sum += std::complex<double>(std::abs(v[i].real()), std::abs(v[i].imag()));
     }

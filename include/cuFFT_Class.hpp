@@ -14,7 +14,7 @@ namespace plt = matplotlibcpp;
 #endif
 
 
-class cuFFT_Class : Abstract_FFT {
+class cuFFT_Class final : Abstract_FFT {
 private:
     std::complex<double> *source_data{};
     int vector_side;
@@ -30,7 +30,7 @@ private:
 
 public:
     explicit cuFFT_Class(float memory_size); // memory_size given in MB
-    ~cuFFT_Class();
+    ~cuFFT_Class() override;
 
     [[maybe_unused]] inline std::string name() override { return "CUDA"; };
     [[maybe_unused]] [[nodiscard]] inline int get_side() const { return vector_side; };
@@ -44,8 +44,8 @@ public:
     [[maybe_unused]] std::chrono::duration<double, std::milli> time_transform(int runs) override;
 
 #if __has_include( "matplotlibcpp.h" )
-    [[maybe_unused]] void create_preplot(const std::string& name);
-    [[maybe_unused]] void create_postplot(const std::string& name);
+    [[maybe_unused]] void create_preplot(const std::string& file_name);
+    [[maybe_unused]] void create_postplot(const std::string& file_name);
 #endif
 
 };
