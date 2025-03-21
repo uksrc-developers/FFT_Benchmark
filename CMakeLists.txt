@@ -42,25 +42,3 @@ endif( rocfft_FOUND )
 add_executable( FFT_Bench ${SOURCES} )
 target_include_directories( FFT_Bench PUBLIC include )
 target_link_libraries( FFT_Bench ${LIBRARIES} )
-# Build Flags on local
-# -G Ninja
-# -D CMAKE_MAKE_PROGRAM=/usr/bin/ninja
-# -D CMAKE_BUILD_TYPE=Debug
-# -D CMAKE_C_COMPILER=/usr/bin/gcc
-# -D CMAKE_CXX_COMPILER=/usr/bin/g++
-# -D CMAKE_C_FLAGS=-fopenmp
-# -D CMAKE_EXE_LINKER_FLAGS=-fopenmp
-# -D __HIP_PLATFORM_NVIDIA__
-# -D GPU_TARGETS=
-# -S /home/marcuskeil/Projects/RSE/Benchmarks_Hardware/FFT/FFT_Bench
-# -B /home/marcuskeil/Projects/RSE/Benchmarks_Hardware/FFT/FFT_Bench/cmake-build-debug
-
-# -G Ninja
-# -D CMAKE_MAKE_PROGRAM=/usr/bin/ninja
-# -D CMAKE_BUILD_TYPE=Debug
-# -D CMAKE_C_COMPILER=/usr/bin/gcc
-# -D CMAKE_CXX_COMPILER=/usr/bin/g++
-# -D CMAKE_C_FLAGS=-fopenmp
-# -D CMAKE_EXE_LINKER_FLAGS=-fopenmp
-# -S /home/marcuskeil/Projects/RSE/Benchmarks_Hardware/FFT/FFT_Bench
-# -B /home/marcuskeil/Projects/RSE/Benchmarks_Hardware/FFT/FFT_Bench/cmake-build-debug
