@@ -1,16 +1,20 @@
 #include <cmath>
 #include <iostream>
 #include <getopt.h>
-#include <any>
 
 #include "include/Abstract_FFT.hpp"
 #include "include/Data_Functions.hpp"
 #include "include/FFTW_Class.hpp"
+
+#if __has_include( "cufft.h")
 #include "include/cuFFT_Class.hpp"
+#endif
+
+#if __has_include( <rocfft.h> )
 #include "include/rocFFT_Class.hpp"
+#endif
 
 using namespace std;
-namespace plt = matplotlibcpp;
 
 template<class FFT_Class>
 void memory_run(std::vector<float> const &memories, int runs = 5, bool plot = false){
@@ -146,12 +150,16 @@ int main(int argc, char **argv) {
     if (FFTW){
         memory_run<FFTW_Class>(memory_sizes, run_count, Plot);
     }
+#if __has_include( "cufft.h")
     if (CUDA){
         memory_run<cuFFT_Class>(memory_sizes, run_count, Plot);
     }
+#endif
+#if __has_include( <rocfft.h> )
     if (rocFFT){
         memory_run<rocFFT_Class>(memory_sizes, run_count, Plot);
     }
+#endif
 
 //    if ( true ){
 //        std::cout << "Single call Test\n";

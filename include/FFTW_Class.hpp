@@ -7,10 +7,10 @@
 #include "Data_Functions.hpp"
 #include "Abstract_FFT.hpp"
 
-#if __has_include( "matplotlibcpp.h" )
-#include "matplotlibcpp.h"
-namespace plt = matplotlibcpp;
-#endif
+//#if __has_include( "matplotlibcpp.h" )
+//#include "matplotlibcpp.h"
+//namespace plt = matplotlibcpp;
+//#endif
 
 class FFTW_Class final : Abstract_FFT{
     private:

@@ -4,15 +4,15 @@
 
 #ifndef FFT_BENCH_ROCFFT_CLASS_HPP
 #define FFT_BENCH_ROCFFT_CLASS_HPP
-#include "rocfft/rocfft.h"
+#include <rocfft.h>
 #include "Data_Functions.hpp"
 #include "Abstract_FFT.hpp"
-#include "hip/hip_runtime_api.h"
+#include <hip/hip_runtime_api.h>
 
-#if __has_include( "matplotlibcpp.h" )
-#include "matplotlibcpp.h"
-namespace plt = matplotlibcpp;
-#endif
+//#if __has_include( "matplotlibcpp.h" )
+//#include "matplotlibcpp.h"
+//namespace plt = matplotlibcpp;
+//#endif
 
 class rocFFT_Class final : Abstract_FFT{
     private:
