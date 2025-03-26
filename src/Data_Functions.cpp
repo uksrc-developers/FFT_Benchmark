@@ -11,7 +11,7 @@ long int get_sys_mem() {
     long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);
     long mem_size = (pages * page_size);
-    std::cout << mem_size << std::endl;
+//    std::cout << mem_size << std::endl;
     return mem_size;
 }
 
