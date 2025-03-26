@@ -32,6 +32,7 @@ endif( PYTHON_PLOTTING )
 
 option( CUDA_FFT "Enable cuFFT." OFF )
 if ( CUDA_FFT )
+    set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
     find_package( CUDAToolkit )
     if( NOT CUDAToolkit_FOUND )
         message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find CUDAToolkit")

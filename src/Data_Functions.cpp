@@ -125,7 +125,7 @@ void compare_data(const std::complex<double>* v, const int element_count){
         sum += std::complex<double>(std::abs(v[i].real()), std::abs(v[i].imag()));
     }
     //if (sum.real() < epsilon && sum.imag() < epsilon) {
-        std::cout << "Transform for element_count " << element_count << " had a sum of " << sum << " for the first "
-                  << compare_length << " entries.\n";
+    //    std::cout << "Transform for element_count " << element_count << " had a sum of " << sum << " for the first "
+    //              << compare_length << " entries.\n";
     //}
 }

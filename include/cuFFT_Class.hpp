@@ -7,9 +7,11 @@
 #include "cufft.h"
 #include "Data_Functions.hpp"
 #include "Abstract_FFT.hpp"
+#include <map>
 
-//#if __has_include( "matplotlibcpp.h" )
+//#if __has_include( <Python.h> )
 //#include "matplotlibcpp.h"
+//#include <map>
 //namespace plt = matplotlibcpp;
 //#endif
 
@@ -43,10 +45,10 @@ public:
     [[maybe_unused]] void transform() override;
     [[maybe_unused]] std::chrono::duration<double, std::milli> time_transform(int runs) override;
 
-#if __has_include( "matplotlibcpp.h" )
-    [[maybe_unused]] void create_preplot(const std::string& file_name);
-    [[maybe_unused]] void create_postplot(const std::string& file_name);
-#endif
+//#if __has_include( <Python.h> )
+//    [[maybe_unused]] void create_preplot(const std::string& file_name);
+//    [[maybe_unused]] void create_postplot(const std::string& file_name);
+//#endif
 
 };
 

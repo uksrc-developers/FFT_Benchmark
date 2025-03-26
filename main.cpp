@@ -21,10 +21,10 @@ void memory_run(std::vector<float> const &memories, int runs = 5, bool plot = fa
     for (float mem : memories){
         FFT_Class fft_class(mem);
         if ( plot){
-#if __has_include( "matplotlibcpp.h" )
-            fft_class.transform();
-            fft_class.create_postplot(fft_class.name() + "_transform_"s + std::to_string(mem) + "MB");
-#endif
+//#if __has_include( "matplotlibcpp.h" )
+//            fft_class.transform();
+//            fft_class.create_postplot(fft_class.name() + "_transform_"s + std::to_string(mem) + "MB");
+//#endif
         }
         auto time = fft_class.time_transform(runs).count();
         std::cout << fft_class.name() << ", " <<
