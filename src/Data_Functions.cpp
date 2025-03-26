@@ -8,7 +8,8 @@ double epsilon = 1e-10;
 int compare_length = 1000;
 
 long long get_sys_mem() {
-    long pages = sysconf(_SC_PHYS_PAGES);
+    long pages = sysconf(_SC_AVPHYS_PAGES);
+//    long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);
     long mem_size = (pages * page_size);
 //    std::cout << mem_size << std::endl;
