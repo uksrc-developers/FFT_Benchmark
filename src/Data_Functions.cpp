@@ -17,8 +17,8 @@ long int get_sys_mem() {
     FILE *cmdfile = popen(cmd, "r");
     fgets(result, sizeof(result), cmdfile);
     pclose(cmdfile);
-    // stoi() to return int instead of string
-    return std::stoi(result);
+    // stol() to return long int instead of string
+    return std::stol(result);
 }
 
 int verify_dimension(int dim){
