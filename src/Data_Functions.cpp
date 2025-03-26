@@ -23,7 +23,7 @@ int verify_dimension(int dim){
 }
 
 int possible_vector_size(float memory_size){
-    long int memory_limit = get_sys_mem();
+    long long memory_limit = get_sys_mem();
     double requested_bytes = 0;
     int dimension = 0;
     dimension = int(std::sqrt( (memory_size * 1000000) / sizeof(std::complex<double>) ));
