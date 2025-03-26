@@ -11,7 +11,7 @@
 #include <iostream>
 #include <algorithm>
 #include <unistd.h>
-long int get_sys_mem();
+long long get_sys_mem();
 
 int verify_dimension(int dim);
 
