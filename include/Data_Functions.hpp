@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <unistd>
 
 long int get_sys_mem();
 

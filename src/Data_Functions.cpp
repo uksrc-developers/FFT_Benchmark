@@ -8,17 +8,11 @@ double epsilon = 1e-10;
 int compare_length = 1000;
 
 long int get_sys_mem() {
-    //Function to retrieve the amount of available memory at time of execution.
-    // variable that will hold the results.
-    char result[256] = { 0 };
-    // awk command, checked on Ubuntu 22.04
-    char const *cmd = "awk '{if (NR == 3) { print $2}}' /proc/meminfo";
-    // Open FILE which will received the streamed outputs so that they can be extracted
-    FILE *cmdfile = popen(cmd, "r");
-    fgets(result, sizeof(result), cmdfile);
-    pclose(cmdfile);
-    // stol() to return long int instead of string
-    return std::stol(result);
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    long mem_size = (pages * page_size);
+    std::cout << mem_size << std::endl;
+    return mem_size;
 }
 
 int verify_dimension(int dim){
@@ -29,7 +23,7 @@ int verify_dimension(int dim){
 }
 
 int possible_vector_size(float memory_size){
-    long int memory_limit = get_sys_mem()*1000;
+    long int memory_limit = get_sys_mem();
     double requested_bytes = 0;
     int dimension = 0;
     dimension = int(std::sqrt( (memory_size * 1000000) / sizeof(std::complex<double>) ));
