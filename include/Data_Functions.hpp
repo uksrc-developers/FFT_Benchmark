@@ -10,8 +10,8 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
-
-long int get_sys_mem();
+#include <unistd.h>
+long long get_sys_mem();
 
 int verify_dimension(int dim);
 
