@@ -6,7 +6,6 @@
 rocFFT_Class::rocFFT_Class(float memory_size){
     if(rocfft_setup() != rocfft_status_success)
         throw std::runtime_error("rocfft_setup failed.");
-    std::cout << "Test" << std::endl;
     vector_side = possible_vector_size(memory_size);
     vector_element_count = pow(vector_side, 2);
     vector_memory_size = (vector_element_count*sizeof(std::complex<double>));
