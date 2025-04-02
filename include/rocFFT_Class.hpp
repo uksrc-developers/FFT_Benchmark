@@ -31,7 +31,7 @@ class rocFFT_Class final : Abstract_FFT{
         [[maybe_unused]] inline std::string name() override { return "rocFFT"; };
         [[maybe_unused]] [[nodiscard]] inline int get_side() override { return vector_side; };
         [[maybe_unused]] [[nodiscard]] inline size_t get_memory() override { return vector_memory_size; };
-        [[maybe_unused]] [[nodiscard]] inline std::complex<double>* get_source() override;
+        [[maybe_unused]] [[nodiscard]] std::complex<double>* get_source() override;
         [[maybe_unused]] [[nodiscard]] inline int get_element_count() override { return vector_element_count; };
 
         [[maybe_unused]] void transform() override;
