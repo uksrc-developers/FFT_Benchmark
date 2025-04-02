@@ -114,13 +114,15 @@ void print_data(std::complex<double>* v, const int element_count){
     std::cout<<"\n";
 }
 
-void compare_data(const std::complex<double>* v, const int element_count){
+float compare_data(const std::complex<double>* v, const int element_count){
     std::complex<double> sum = {0, 0};
+#pragma omp parallel for
     for (int i = 0; i < compare_length; i++){
         sum += std::complex<double>(std::abs(v[i].real()), std::abs(v[i].imag()));
     }
-    //if (sum.real() < epsilon && sum.imag() < epsilon) {
-    //    std::cout << "Transform for element_count " << element_count << " had a sum of " << sum << " for the first "
-    //              << compare_length << " entries.\n";
-    //}
+    if( static_cast<float>(abs(sum)) == 0.0 ) {
+        std::cout << "Sum value = " << sum << std::endl;
+        throw std::runtime_error("Transform not performed");
+    }
+    return static_cast<float>(abs(sum));
 }

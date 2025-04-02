@@ -20,19 +20,19 @@ template<class FFT_Class>
 void memory_run(std::vector<float> const &memories, int runs = 5, bool plot = false){
     for (float mem : memories){
         FFT_Class fft_class(mem);
-        if ( plot){
+//        if ( plot){
 //#if __has_include( "matplotlibcpp.h" )
 //            fft_class.transform();
 //            fft_class.create_postplot(fft_class.name() + "_transform_"s + std::to_string(mem) + "MB");
 //#endif
-        }
+//        }
         auto time = fft_class.time_transform(runs).count();
-        std::cout << fft_class.name() << ", " <<
-                     fft_class.get_element_count() << ", " <<
-                     fft_class.get_memory() << ", " <<
-                     time << "\n";
-        compare_data(fft_class.get_source(),
-                     fft_class.get_element_count());
+        auto checksum = compare_data(fft_class.get_source(), fft_class.get_element_count());
+        std::cout << fft_class.name() << ",\t\t" <<
+                     fft_class.get_memory()/1000000 << ",\t\t" <<
+                     time << ",\t" <<
+                     checksum << "\n";
+        ;
     }
 }
 
@@ -63,9 +63,6 @@ std::vector<float> double_space(float start, int count){
 }
 
 int main(int argc, char **argv) {
-    //
-    /// START ############# Get Commandline Options #############
-    //
     float mem_start = 1000; // in [MB]
     int mem_count = 10;
     int run_count = 5;
@@ -145,7 +142,7 @@ int main(int argc, char **argv) {
 
     //    std::vector<float> memory_sizes = {2000};
     std::cout << "Run_Count: " << run_count << "\n";
-    std::cout << "FFT_Code, Element_Count, Memory_Size [B], Avg_time [ms]\n";
+    std::cout << "FFT_Code,\tMem_Size[MB],\tAvg_time[ms],\tCheck_Value\n";
 
     if (FFTW){
         memory_run<FFTW_Class>(memory_sizes, run_count, Plot);

@@ -1,4 +1,5 @@
 /.idea
 /cmake-build-debug/
+/debug-cmake/
 /buildfile.sh
 /FFT_Bench.tar.xz
