@@ -7,14 +7,6 @@
 #include "cufft.h"
 #include "Data_Functions.hpp"
 #include "Abstract_FFT.hpp"
-#include <map>
-
-//#if __has_include( <Python.h> )
-//#include "matplotlibcpp.h"
-//#include <map>
-//namespace plt = matplotlibcpp;
-//#endif
-
 
 class cuFFT_Class final : Abstract_FFT {
 private:
@@ -35,21 +27,15 @@ public:
     ~cuFFT_Class() override;
 
     [[maybe_unused]] inline std::string name() override { return "CUDA"; };
-    [[maybe_unused]] [[nodiscard]] inline int get_side() const { return vector_side; };
-    [[maybe_unused]] [[nodiscard]] inline size_t get_memory() const { return vector_memory_size; };
-    [[maybe_unused]] [[nodiscard]] inline std::complex<double>* get_source() { return source_data; };
-    [[maybe_unused]] [[nodiscard]] inline int get_element_count() const { return vector_element_count; };
+    [[maybe_unused]] [[nodiscard]] inline int get_side() override { return vector_side; };
+    [[maybe_unused]] [[nodiscard]] inline size_t get_memory() override { return vector_memory_size; };
+    [[maybe_unused]] [[nodiscard]] inline std::complex<double>* get_source() override { return source_data; };
+    [[maybe_unused]] [[nodiscard]] inline int get_element_count() override { return vector_element_count; };
 
     [[maybe_unused]] inline void stream_fft();
     [[maybe_unused]] inline void split_fft(std::complex<double> **data, int element_count);
     [[maybe_unused]] void transform() override;
     [[maybe_unused]] std::chrono::duration<double, std::milli> time_transform(int runs) override;
-
-//#if __has_include( <Python.h> )
-//    [[maybe_unused]] void create_preplot(const std::string& file_name);
-//    [[maybe_unused]] void create_postplot(const std::string& file_name);
-//#endif
-
 };
 
 #endif //FFT_BENCH_CUFFT_CLASS_HPP

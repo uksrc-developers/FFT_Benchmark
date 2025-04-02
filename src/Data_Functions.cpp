@@ -9,10 +9,8 @@ int compare_length = 1000;
 
 long long get_sys_mem() {
     long pages = sysconf(_SC_AVPHYS_PAGES);
-//    long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);
     long mem_size = (pages * page_size);
-//    std::cout << mem_size << std::endl;
     return mem_size;
 }
 
@@ -116,8 +114,11 @@ void print_data(std::complex<double>* v, const int element_count){
 
 float compare_data(const std::complex<double>* v, const int element_count){
     std::complex<double> sum = {0, 0};
+    int sum_length = compare_length;
+    if (sum_length > element_count)
+        sum_length = element_count;
 #pragma omp parallel for
-    for (int i = 0; i < compare_length; i++){
+    for (int i = 0; i < sum_length; i++){
         sum += std::complex<double>(std::abs(v[i].real()), std::abs(v[i].imag()));
     }
     if( static_cast<float>(abs(sum)) == 0.0 ) {
@@ -126,3 +127,32 @@ float compare_data(const std::complex<double>* v, const int element_count){
     }
     return static_cast<float>(abs(sum));
 }
+
+#if __has_include( "matplotlibcpp.h" )
+void create_preplot(std::complex<double>* source_data, int element_count, const std::string& title, const std::string& file_name){
+    const int vector_side = sqrt(element_count);
+    plt::figure_size(1200, 780);
+    constexpr int colors = 1;
+    plt::title(title);
+    std::vector<float> plot = pre_plot_vector(source_data, element_count);
+    plt::imshow(&(plot[0]),
+                          vector_side,
+                          vector_side, colors,
+                          std::map<std::string, std::string>{{"origin", "lower"}});
+    plt::save("Plots/" + file_name + ".png");
+}
+
+void create_postplot(std::complex<double>* source_data, int element_count, const std::string& title, const std::string& file_name){
+    const int vector_side = sqrt(element_count);
+    plt::figure_size(1200, 780);
+    constexpr int colors = 1;
+    plt::title(title);
+    std::vector<float> plot = post_plot_vector(source_data, element_count);
+    plt::imshow(&(plot[0]),
+                vector_side,
+                vector_side, colors,
+                std::map<std::string, std::string>{{"origin", "lower"}});
+    plt::save("Plots/" + file_name + ".png");
+}
+#endif
+

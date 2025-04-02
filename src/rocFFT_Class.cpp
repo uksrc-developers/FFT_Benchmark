@@ -59,6 +59,12 @@ rocFFT_Class::rocFFT_Class(float memory_size){
 
 }
 
+std::complex<double>* rocFFT_Class::get_source(){
+	assert( hipDeviceSynchronize() == hipSuccess );
+	assert( hipMemcpy(source_data, gpu_source_data, vector_memory_size, hipMemcpyDeviceToHost) == hipSuccess );
+	return source_data;
+};
+
 void rocFFT_Class::transform() {
     assert( 
         rocfft_execute(
@@ -66,8 +72,6 @@ void rocFFT_Class::transform() {
             ( void** )&gpu_source_data, // in_buffer
             nullptr, // out_buffer
             p_info) == rocfft_status_success ); // execution info 
-    assert( hipDeviceSynchronize() == hipSuccess );
-    assert( hipMemcpy(source_data, gpu_source_data, vector_memory_size, hipMemcpyDeviceToHost) == hipSuccess );
     assert( hipDeviceSynchronize() == hipSuccess );
 }
 
@@ -78,6 +82,7 @@ std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(int runs)
         transform();
         std::chrono::time_point t2 = std::chrono::high_resolution_clock::now();times += (t2 - t1);
     }
+    auto _ = get_source();
     return  times / runs;
 }
 

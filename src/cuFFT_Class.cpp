@@ -177,35 +177,7 @@ std::chrono::duration<double, std::milli> cuFFT_Class::time_transform(int runs) 
     return  times / runs;
 }
 
-//#if __has_include( "matplotlibcpp.h" )
-//void cuFFT_Class::create_preplot(const std::string& file_name){
-//    matplotlibcpp::figure_size(1200, 780);
-//    const int colors = 1;
-//    matplotlibcpp::title(std::to_string(static_cast<double>(vector_memory_size)/1000000.0) + "[MB] not transformed");
-//    const std::vector<float> plot_vector = pre_plot_vector(source_data, vector_element_count);
-//    matplotlibcpp::imshow(&(plot_vector[0]),
-//                          vector_side,
-//                          vector_side,
-//                          colors,
-//                          std::map<std::string, std::string>{{"origin", "lower"}});
-//    matplotlibcpp::save("Fiducial_outputs/" + file_name + ".png");
-//}
-//
-//void cuFFT_Class::create_postplot(const std::string& file_name){
-//    plt::figure_size(1200, 780);
-//    const int colors = 1;
-//    plt::title(std::to_string(static_cast<double>(vector_memory_size)/1000000.0) + "[MB] " + name() + " transformed");
-//    const std::vector<float> plot_vector = post_plot_vector(source_data, vector_element_count);
-//    plt::imshow(&(plot_vector[0]),
-//                vector_side,
-//                vector_side, colors,
-//                std::map<std::string, std::string>{{"origin", "lower"}});
-//    plt::save("Fiducial_outputs/" + file_name + ".png");
-//}
-//#endif
-
-cuFFT_Class::~cuFFT_Class() {  // THIS NEEDS TO BE CHANGED
+cuFFT_Class::~cuFFT_Class() {
     cufftDestroy(p);
     cudaFree(source_data);
-
 }

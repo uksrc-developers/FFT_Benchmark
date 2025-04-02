@@ -24,8 +24,6 @@ class rocFFT_Class final : Abstract_FFT{
         size_t vector_memory_size;
         size_t p_workbuff_size = 0;
 
-
-
         rocfft_plan p = nullptr;
         void* p_workbuff = nullptr;
         rocfft_execution_info p_info = nullptr;
@@ -36,17 +34,12 @@ class rocFFT_Class final : Abstract_FFT{
         ~rocFFT_Class() override;
 
         [[maybe_unused]] inline std::string name() override { return "rocFFT"; };
-        [[maybe_unused]] [[nodiscard]] inline int get_side() const { return vector_side; };
-        [[maybe_unused]] [[nodiscard]] inline size_t get_memory() const { return vector_memory_size; };
-        [[maybe_unused]] [[nodiscard]] inline std::complex<double>* get_source() { return source_data; };
-        [[maybe_unused]] [[nodiscard]] inline int get_element_count() const { return vector_element_count; };
+        [[maybe_unused]] [[nodiscard]] inline int get_side() override { return vector_side; };
+        [[maybe_unused]] [[nodiscard]] inline size_t get_memory() override { return vector_memory_size; };
+        [[maybe_unused]] [[nodiscard]] inline std::complex<double>* get_source() override;
+        [[maybe_unused]] [[nodiscard]] inline int get_element_count() override { return vector_element_count; };
 
         [[maybe_unused]] void transform() override;
         [[maybe_unused]] std::chrono::duration<double, std::milli> time_transform(int runs) override;
-
-//#if __has_include( <Python.h> )
-//        [[maybe_unused]] void create_preplot(const std::string& file_name);
-//        [[maybe_unused]] void create_postplot(const std::string& file_name);
-//#endif
 };
 #endif //FFT_BENCH_ROCFFT_CLASS_HPP

@@ -33,13 +33,33 @@ endif( PYTHON_PLOTTING )
 option( CUDA_FFT "Enable cuFFT." OFF )
 if ( CUDA_FFT )
     set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
-    find_package( CUDAToolkit )
-    if( NOT CUDAToolkit_FOUND )
-        message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find CUDAToolkit")
-    endif( NOT CUDAToolkit_FOUND )
-    include_directories( ${CUDAToolkitINCLUDE_DIRS} )
+    set(CUDA_DIR "/usr/local/cuda" CACHE PATH "Root directory of cuda installation")
+    find_library(CUFFT_LIBRARY
+            NAMES cufft
+            PATHS ${CUDA_DIR}/lib64
+            NO_DEFAULT_PATH)
+    find_path(CUFFT_INCLUDE_DIR
+            NAMES cufft.h
+            PATHS ${CUDA_DIR}/include
+            NO_DEFAULT_PATH)
+    if( NOT CUFFT_LIBRARY OR NOT CUFFT_INCLUDE_DIR )
+        message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find cufft")
+    endif()
+    include_directories( ${CUFFT_INCLUDE_DIR} )
+    find_library(CUDART_LIBRARY
+            NAMES cudart
+            PATHS ${CUDA_DIR}/lib64
+            NO_DEFAULT_PATH)
+    find_path(CUDART_INCLUDE_DIR
+            NAMES cuda_runtime.h
+            PATHS ${CUDA_DIR}/include
+            NO_DEFAULT_PATH)
+    if( NOT CUDART_LIBRARY OR NOT CUDART_INCLUDE_DIR )
+        message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find cuda_runtime")
+    endif()
+    include_directories( ${CUDART_INCLUDE_DIR} )
     list( APPEND SOURCES src/cuFFT_Class.cpp include/cuFFT_Class.hpp )
-    list( APPEND LIBRARIES CUDA::cudart CUDA::cufft )
+    list( APPEND LIBRARIES ${CUDART_LIBRARY} ${CUFFT_LIBRARY} )
 endif( CUDA_FFT )
 
 option( ROC_FFT "Enable rocFFT." OFF )
@@ -66,8 +86,6 @@ if( ROC_FFT )
     list( APPEND SOURCES src/rocFFT_Class.cpp include/rocFFT_Class.hpp )
     list( APPEND LIBRARIES ${ROCFFT_LIBRARY} ${HIP_LIBRARY}  )
 endif( ROC_FFT )
-
-message(LIBRARIES="${LIBRARIES}")
 
 add_executable( FFT_Bench main.cpp ${SOURCES} )
 target_link_libraries( FFT_Bench ${LIBRARIES} )
