@@ -86,33 +86,6 @@ std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(int runs)
     return  times / runs;
 }
 
-//#if __has_include( "matplotlibcpp.h" )
-//void rocFFT_Class::create_preplot(const std::string& file_name){
-//    matplotlibcpp::figure_size(1200, 780);
-//    const int colors = 1;
-//    matplotlibcpp::title(std::to_string(vector_memory_size/1000000) + "[MB] not transformed");
-//    std::vector<float> plot = pre_plot_vector(source_data, vector_element_count);
-//    matplotlibcpp::imshow(&(plot[0]),
-//                          vector_side,
-//                          vector_side, colors,
-//                          std::map<std::string, std::string>{{"origin", "lower"}});
-//    matplotlibcpp::save("Fiducial_outputs/" + file_name + ".png");
-//}
-//
-//void rocFFT_Class::create_postplot(const std::string& file_name){
-//    plt::figure_size(1200, 780);
-//    const int colors = 1;
-//    plt::title(std::to_string(vector_memory_size/1000000) + "[MB] " + name() + " transformed");
-//    std::vector<float> plot = post_plot_vector(source_data, vector_element_count);
-//    plt::imshow(&(plot[0]),
-//                vector_side,
-//                vector_side, colors,
-//                std::map<std::string, std::string>{{"origin", "lower"}});
-//    plt::save("Fiducial_outputs/" + file_name + ".png");
-//}
-//#endif
-
-
 rocFFT_Class::~rocFFT_Class() {
     free(source_data);
 

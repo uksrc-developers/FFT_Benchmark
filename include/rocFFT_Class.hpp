@@ -10,11 +10,6 @@
 #include <hip/hip_runtime_api.h>
 #include <map>
 
-//#if __has_include( <Python.h> )
-//#include "matplotlibcpp.h"
-//namespace plt = matplotlibcpp;
-//#endif
-
 class rocFFT_Class final : Abstract_FFT{
     private:
         std::complex<double> *source_data{};
