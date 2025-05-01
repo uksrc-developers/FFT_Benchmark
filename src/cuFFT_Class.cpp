@@ -20,80 +20,315 @@ cuFFT_Class::cuFFT_Class(const float memory_size){ // memory_size given in MB
 
     size_t mf, ma;
     cudaMemGetInfo(&mf, &ma);
-    if ( mf < ( workEstimate + vector_memory_size ) ){
-        split = true;
-        int split_element_count = vector_element_count/2;
-        int mult;
-        if ( workEstimate < (split_element_count*sizeof(std::complex<double>))/2 || workEstimate > (split_element_count*sizeof(std::complex<double>))/2 ){
-            mult = 7;
+    size_t compare_mf = mf*3/4;
+    if ( compare_mf < ( workEstimate + vector_memory_size ) ){
+        // rad_2_est
+        cufftEstimate2d(
+            static_cast<int>(sqrt(vector_element_count/2)),
+            static_cast<int>(sqrt(vector_element_count/2)),
+            CUFFT_Z2Z, &workEstimate);
+        if( compare_mf < (workEstimate + vector_memory_size/2) ) {
+            radix2=true;
         } else {
-            mult = 2;
-        }
-        cufftEstimate2d(static_cast<int>(sqrt(split_element_count)), static_cast<int>(sqrt(split_element_count)), CUFFT_Z2Z, &workEstimate);
-        while ( mf*3/4 < ( workEstimate + split_element_count )*mult ){
-            split_count++;
-            split_element_count = split_element_count/2;
-            cufftEstimate2d(static_cast<int>(sqrt(split_element_count)), static_cast<int>(sqrt(split_element_count)), CUFFT_Z2Z, &workEstimate);
-            if ( workEstimate < (split_element_count*sizeof(std::complex<double>))/2 || workEstimate > (split_element_count*sizeof(std::complex<double>)) ){
-                mult = 7;
+            cufftEstimate2d(
+                static_cast<int>(sqrt(vector_element_count/4)),
+                static_cast<int>(sqrt(vector_element_count/4)),
+                CUFFT_Z2Z, &workEstimate);
+            if( compare_mf < (workEstimate + vector_memory_size/4) ) {
+                radix4=true;
             } else {
-                mult = 2;
+                cufftEstimate2d(
+                    static_cast<int>(sqrt(vector_element_count/4)),
+                    static_cast<int>(sqrt(vector_element_count/4)),
+                    CUFFT_Z2Z, &workEstimate);
+                if( compare_mf < (workEstimate + vector_memory_size/4) ) {
+                    radix8=true;
+                } else {
+                    throw std::invalid_argument( "Work area and Array size too large to perform cuFFT transform." );
+                }
             }
         }
-        original_split = split_count;
     } else {
         cufftPlan2d(&p,vector_side,vector_side,CUFFT_Z2Z);
     }
 }
 
-void cuFFT_Class::stream_fft(){
-    int Nsplits = 2;
-    int Npartial = vector_element_count / Nsplits;
-    size_t mf, ma;
-    cudaMemGetInfo(&mf, &ma);
-    while ( pow(vector_side/Nsplits, 2)*sizeof(std::complex<double>) < static_cast<double>(mf)/7 ){
-        Nsplits++;
-        Npartial = vector_element_count / Nsplits;
-    }
-    while ( vector_element_count%Nsplits > 0 ){
-        Nsplits++;
-        Npartial = vector_element_count / Nsplits;
-    }
+void cuFFT_Class::allocate_memory(std::complex<double> *data, const int element_count) {
+    cudaMallocManaged(
+            &data,
+            element_count*sizeof(std::complex<double>),
+            cudaMemAttachGlobal
+    );
+}
 
-    cufftPlan1d(&p,Npartial,CUFFT_Z2Z, 1);
+void cuFFT_Class::free_memory(std::complex<double> *data) {
+    cudaFree(data);
+}
 
-    auto *out_data = new std::complex<double>[vector_element_count];
+void cuFFT_Class::make_plan(const int element_count) {
+    cufftPlan1d(&p, element_count, CUFFT_Z2Z, 1);
+}
 
-    for ( int N = 0; N < Nsplits; N++ ) {
-        auto *h_in = new std::complex<double>[Npartial];
-        for (int i = 0; i < Npartial; i++) {
-            h_in[i] = source_data[i + Npartial * N];
-        }
-        cudaHostRegister(&h_in, Npartial*sizeof(std::complex<double>), cudaHostRegisterPortable);
-        auto *d_in = new std::complex<double>[Npartial];
-        cudaMallocManaged((void**)&d_in, vector_element_count*sizeof(std::complex<double>));
-        cudaMemset(d_in, 0, vector_element_count*sizeof(float2));
+//void cuFFT_Class::CT_radix_2() {
+//    constexpr int radix = 2;
+//    const int N_o_R = vector_element_count/radix;
+//    std::complex<double> *fft_0;
+//    cudaMallocManaged(
+//            &fft_0,
+//            N_o_R*sizeof(std::complex<double>),
+//            cudaMemAttachHost
+//    );
+//    std::complex<double> *fft_1;
+//    cudaMallocManaged(
+//            &fft_1,
+//            N_o_R*sizeof(std::complex<double>),
+//            cudaMemAttachHost
+//    );
+//    bool toggle = false;
+//#pragma omp parallel for
+//    for( int i = 0; i < N_o_R; ++i ){
+//        fft_0[i] = (source_data)[i*radix];
+//        fft_1[i] = (source_data)[i*radix + 1];
+//    }
+//    cufftPlan1d(&p, N_o_R, CUFFT_Z2Z, 1);
+//    cufftExecZ2Z(p,
+//                     reinterpret_cast<cufftDoubleComplex *>(fft_0),
+//                     reinterpret_cast<cufftDoubleComplex *>(fft_0),
+//                     CUFFT_FORWARD);
+//    cufftExecZ2Z(p,
+//                 reinterpret_cast<cufftDoubleComplex *>(fft_1),
+//                 reinterpret_cast<cufftDoubleComplex *>(fft_1),
+//                 CUFFT_FORWARD);
+//    cudaDeviceSynchronize();
+//#pragma omp parallel for
+//    for (int i=0; i < N_o_R; i++ ){
+//        auto q = std::complex<double>(
+//            cos(-((2*M_PI)/vector_element_count)*i),
+//            sin(-((2*M_PI)/vector_element_count)*i))*fft_1[i];
+//        auto q_1  = std::complex<double>(
+//            cos(-(2*M_PI)/radix),
+//            sin(-(2*M_PI)/radix));
+//        (source_data)[i] = fft_0[i] + q;
+//        (source_data)[i+N_o_R] = fft_0[i] + q*q_1;
+//    }
+//    cudaFree(fft_0);
+//    cudaFree(fft_1);
+//}
 
-        for ( int i = 0; i < Npartial; i++ ){
-            d_in[i + Npartial * N] = h_in[i];
-        }
-
-        cufftExecZ2Z(p,
-                     reinterpret_cast<cufftDoubleComplex *>(d_in),
-                     reinterpret_cast<cufftDoubleComplex *>(d_in),
-                     CUFFT_FORWARD);
-        cudaDeviceSynchronize();
-        for ( int i = 0; i < vector_element_count; i++ ){
-            out_data[i] += d_in[i];
-        }
-        cudaHostUnregister(h_in);
-        cudaFree(d_in);
-    }
+void cuFFT_Class::CT_radix_4() {
+    constexpr int radix = 4;
+    const int N_o_R = vector_element_count/radix;
+    std::complex<double> *fft_0;
+    cudaMallocManaged(
+            &fft_0,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_1;
+    cudaMallocManaged(
+            &fft_1,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_2;
+    cudaMallocManaged(
+            &fft_2,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_3;
+    cudaMallocManaged(
+            &fft_3,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+            );
 #pragma omp parallel for
-    for ( int i = 0; i < vector_element_count; i++ ){
-        source_data[i] = out_data[i];
+    for( int i = 0; i < N_o_R; ++i ){
+        fft_0[i] = (source_data)[i*radix];
+        fft_1[i] = (source_data)[i*radix + 1];
+        fft_2[i] = (source_data)[i*radix + 2];
+        fft_3[i] = (source_data)[i*radix + 3];
     }
-    free(out_data);
+    cufftPlan1d(&p, N_o_R, CUFFT_Z2Z, 1);
+    cufftExecZ2Z(p,
+                     reinterpret_cast<cufftDoubleComplex *>(fft_0),
+                     reinterpret_cast<cufftDoubleComplex *>(fft_0),
+                     CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                 reinterpret_cast<cufftDoubleComplex *>(fft_1),
+                 reinterpret_cast<cufftDoubleComplex *>(fft_1),
+                 CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                     reinterpret_cast<cufftDoubleComplex *>(fft_2),
+                     reinterpret_cast<cufftDoubleComplex *>(fft_2),
+                     CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                 reinterpret_cast<cufftDoubleComplex *>(fft_3),
+                 reinterpret_cast<cufftDoubleComplex *>(fft_3),
+                 CUFFT_FORWARD);
+    cudaDeviceSynchronize();
+#pragma omp parallel for // NEEDS CHANGING
+    for (int i=0; i < N_o_R; i++ ){
+        auto q = std::complex<double>(
+            cos(-((2*M_PI)/vector_element_count)*i),
+            sin(-((2*M_PI)/vector_element_count)*i))*fft_1[i];
+        auto q_1 = std::complex<double>(
+            cos(-(2*M_PI)/radix),
+            sin(-(2*M_PI)/radix));
+        auto q_2 = std::complex<double>(
+            cos(-(2*M_PI*2)/radix),
+            sin(-(2*M_PI*2)/radix));
+        auto q_3 = std::complex<double>(
+            cos(-(2*M_PI*3)/radix),
+            sin(-(2*M_PI*3)/radix));
+        auto r = std::complex<double>(
+            cos(-((2*M_PI*2)/vector_element_count)*i),
+            sin(-((2*M_PI*2)/vector_element_count)*i))*fft_2[i];
+        auto r_1 = std::complex<double>(
+            cos(-(2*M_PI*2)/radix),
+            sin(-(2*M_PI*2)/radix));
+        auto r_2 = std::complex<double>(
+            cos(-(2*M_PI*4)/radix),
+            sin(-(2*M_PI*4)/radix));
+        auto r_3 = std::complex<double>(
+            cos(-(2*M_PI*6)/radix),
+            sin(-(2*M_PI*6)/radix));
+        auto t = std::complex<double>(
+            cos(-((2*M_PI*3)/vector_element_count)*i),
+            sin(-((2*M_PI*3)/vector_element_count)*i))*fft_3[i];
+        auto t_1 = std::complex<double>(
+            cos(-(2*M_PI*3)/radix),
+            sin(-(2*M_PI*3)/radix));
+        auto t_2 = std::complex<double>(
+            cos(-(2*M_PI*6)/radix),
+            sin(-(2*M_PI*6)/radix));
+        auto t_3 = std::complex<double>(
+            cos(-(2*M_PI*9)/radix),
+            sin(-(2*M_PI*9)/radix));
+
+        (source_data)[i] = fft_0[i] + q + r + t;
+        (source_data)[i+N_o_R] = fft_0[i] + q*q_1 + r*r_1 + t*t_1;
+        (source_data)[i+2*N_o_R] = fft_0[i] + q*q_2 + r*r_2 + t*t_2;
+        (source_data)[i+3*N_o_R] = fft_0[i] + q*q_3 + r*r_3 + t*t_3;
+    }// NEEDS CHANGING
+    cudaFree(fft_0);
+    cudaFree(fft_1);
+    cudaFree(fft_2);
+    cudaFree(fft_3);
+}
+
+void cuFFT_Class::CT_radix_8() {
+    constexpr int radix = 8;
+    const int N_o_R = vector_element_count/radix;
+    std::complex<double> *fft_0;
+    cudaMallocManaged(
+            &fft_0,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_1;
+    cudaMallocManaged(
+            &fft_1,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_2;
+    cudaMallocManaged(
+            &fft_2,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_3;
+    cudaMallocManaged(
+            &fft_3,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_4;
+    cudaMallocManaged(
+            &fft_4,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_5;
+    cudaMallocManaged(
+            &fft_5,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_6;
+    cudaMallocManaged(
+            &fft_6,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+    std::complex<double> *fft_7;
+    cudaMallocManaged(
+            &fft_7,
+            N_o_R*sizeof(std::complex<double>),
+            cudaMemAttachHost
+    );
+#pragma omp parallel for
+    for( int i = 0; i < N_o_R; ++i ){
+        fft_0[i] = (source_data)[i*radix];
+        fft_1[i] = (source_data)[i*radix + 1];
+        fft_2[i] = (source_data)[i*radix + 2];
+        fft_3[i] = (source_data)[i*radix + 3];
+        fft_4[i] = (source_data)[i*radix + 4];
+        fft_5[i] = (source_data)[i*radix + 5];
+        fft_6[i] = (source_data)[i*radix + 6];
+        fft_7[i] = (source_data)[i*radix + 7];
+    }
+    cufftPlan1d(&p, N_o_R, CUFFT_Z2Z, 1);
+    cufftExecZ2Z(p,
+                     reinterpret_cast<cufftDoubleComplex *>(fft_0),
+                     reinterpret_cast<cufftDoubleComplex *>(fft_0),
+                     CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                 reinterpret_cast<cufftDoubleComplex *>(fft_1),
+                 reinterpret_cast<cufftDoubleComplex *>(fft_1),
+                 CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                     reinterpret_cast<cufftDoubleComplex *>(fft_2),
+                     reinterpret_cast<cufftDoubleComplex *>(fft_2),
+                     CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                 reinterpret_cast<cufftDoubleComplex *>(fft_3),
+                 reinterpret_cast<cufftDoubleComplex *>(fft_3),
+                 CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                     reinterpret_cast<cufftDoubleComplex *>(fft_4),
+                     reinterpret_cast<cufftDoubleComplex *>(fft_4),
+                     CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                 reinterpret_cast<cufftDoubleComplex *>(fft_5),
+                 reinterpret_cast<cufftDoubleComplex *>(fft_5),
+                 CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                     reinterpret_cast<cufftDoubleComplex *>(fft_6),
+                     reinterpret_cast<cufftDoubleComplex *>(fft_6),
+                     CUFFT_FORWARD);
+    cufftExecZ2Z(p,
+                 reinterpret_cast<cufftDoubleComplex *>(fft_7),
+                 reinterpret_cast<cufftDoubleComplex *>(fft_7),
+                 CUFFT_FORWARD);
+    cudaDeviceSynchronize();
+#pragma omp parallel for // NEEDS CHANGING
+    for (int i=0; i < N_o_R; i++ ){
+        auto q = std::complex<double>(
+                cos(-(((2*M_PI))/(vector_element_count))*i),
+                sin(-(((2*M_PI))/(vector_element_count))*i))*fft_1[i];
+        (source_data)[i] = fft_0[i] + q;
+        (source_data)[i+N_o_R] = fft_0[i] - q;
+    }// NEEDS CHANGING
+    cudaFree(fft_0);
+    cudaFree(fft_1);
+    cudaFree(fft_2);
+    cudaFree(fft_3);
+    cudaFree(fft_4);
+    cudaFree(fft_5);
+    cudaFree(fft_6);
+    cudaFree(fft_7);
 }
 
 void cuFFT_Class::split_fft(std::complex<double> **data, const int element_count){
@@ -154,14 +389,21 @@ void cuFFT_Class::split_fft(std::complex<double> **data, const int element_count
 }
 
 void cuFFT_Class::transform(){
-    if ( split ){
-        split_fft(&source_data, vector_element_count);
-    } else {
-        cufftExecZ2Z(p,
-                     reinterpret_cast<cufftDoubleComplex *>(source_data),
-                     reinterpret_cast<cufftDoubleComplex *>(source_data), CUFFT_FORWARD);
-        cudaDeviceSynchronize();
-    }
+    //cufftExecZ2Z(p,
+    //             reinterpret_cast<cufftDoubleComplex *>(source_data),
+    //             reinterpret_cast<cufftDoubleComplex *>(source_data), CUFFT_FORWARD);
+    //cudaDeviceSynchronize();
+    CT_radix_2<cuFFT_Class>(*this);
+}
+
+void cuFFT_Class::transform(std::complex<double> **data) const {
+    cufftExecZ2Z(p,
+                 reinterpret_cast<cufftDoubleComplex *>(*data),
+                 reinterpret_cast<cufftDoubleComplex *>(*data), CUFFT_FORWARD);
+}
+
+void cuFFT_Class::sync() {
+    cudaDeviceSynchronize();
 }
 
 std::chrono::duration<double, std::milli> cuFFT_Class::time_transform(int runs) {

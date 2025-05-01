@@ -3,6 +3,8 @@
 //
 #include "../include/Data_Functions.hpp"
 
+#include "../include/Abstract_FFT.hpp"
+
 double epsilon = 1e-10;
 
 int compare_length = 1000;
@@ -69,6 +71,41 @@ void fill_vector(std::complex<double>* v, int element_count){
     }
 }
 
+//void CT_radix_2<Abstract_FFT>(Abstract_FFT FFT_OBJECT) {
+//    std::cout << "using radix 2" << std::endl;
+//    constexpr int radix = 2;
+//    int vec = FFT_OBJECT.get_element_count();
+//    const int N_o_R = vec/radix;
+//    std::complex<double> *fft_0;
+//    FFT_OBJECT.allocate_memory(fft_0, N_o_R);
+//    std::complex<double> *fft_1;
+//    FFT_OBJECT.allocate_memory(fft_1, N_o_R);
+//    bool toggle = false;
+//#pragma omp parallel for
+//    for( int i = 0; i < N_o_R; ++i ){
+//        fft_0[i] = (FFT_OBJECT.get_source())[i*radix];
+//        fft_1[i] = (FFT_OBJECT.get_source())[i*radix + 1];
+//    }
+//    FFT_OBJECT.make_plan(N_o_R);
+//    FFT_OBJECT.transform(fft_0);
+//    FFT_OBJECT.transform(fft_1);
+//    FFT_OBJECT.sync();
+//#pragma omp parallel for
+//    for (int i=0; i < N_o_R; i++ ){
+//        auto q = std::complex<double>(
+//            cos(-((2*M_PI)/vec)*i),
+//            sin(-((2*M_PI)/vec)*i))*fft_1[i];
+//        auto q_1  = std::complex<double>(
+//            cos(-(2*M_PI)/radix),
+//            sin(-(2*M_PI)/radix));
+//        (FFT_OBJECT.get_source())[i] = fft_0[i] + q;
+//        (FFT_OBJECT.get_source())[i+N_o_R] = fft_0[i] + q*q_1;
+//    }
+//    FFT_OBJECT.free_memory(fft_0);
+//    FFT_OBJECT.free_memory(fft_1);
+//}
+
+
 std::vector<float> pre_plot_vector(std::complex<double>* v, const int element_count) {
     std::vector<float> plot_vector;
     plot_vector.resize(element_count);
@@ -91,6 +128,7 @@ std::vector<float> post_plot_vector(std::complex<double>* v, int element_count){
         int rotate = int(element_count*(3/2) - dim*((dim+1)/2));
         std::rotate(plot_vector.rbegin(), plot_vector.rbegin() + rotate, plot_vector.rend());
     }
+#pragma omp parallel for
     for (int j = 0; j < dim; j++){
         std::rotate(plot_vector.rbegin()+((dim)*j),
                     plot_vector.rbegin()+((dim)*j + int((dim)/2)),

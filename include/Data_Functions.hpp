@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <unistd.h>
 
+#include "Abstract_FFT.hpp"
 #if __has_include( "matplotlibcpp.h" )
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
@@ -25,6 +26,9 @@ int verify_dimension(int dim);
 int possible_vector_size(float memory_size);
 
 void fill_vector(std::complex<double>* v, int element_count);
+
+//template <typename T>
+//void CT_radix_2(T);
 
 std::vector<float> pre_plot_vector(std::complex<double>* v, int element_count);
 

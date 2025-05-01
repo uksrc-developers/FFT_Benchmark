@@ -17,7 +17,10 @@ private:
 
     cufftHandle p{};
 
-    bool split = false;
+
+    bool radix2 = false;
+    bool radix4 = false;
+    bool radix8 = false;
     int original_split = 0;
     int split_count = 0;
     bool plan = false;
@@ -32,9 +35,18 @@ public:
     [[maybe_unused]] [[nodiscard]] inline std::complex<double>* get_source() override { return source_data; };
     [[maybe_unused]] [[nodiscard]] inline int get_element_count() override { return vector_element_count; };
 
-    [[maybe_unused]] inline void stream_fft();
     [[maybe_unused]] inline void split_fft(std::complex<double> **data, int element_count);
+    [[maybe_unused]] static void allocate_memory(std::complex<double> *data, int element_count);
+    [[maybe_unused]] static void free_memory(std::complex<double> *data);
+    [[maybe_unused]]void make_plan(int element_count);
+
+//    [[maybe_unused]] inline void CT_radix_2();
+    [[maybe_unused]] inline void CT_radix_4();
+    [[maybe_unused]] inline void CT_radix_8();
     [[maybe_unused]] void transform() override;
+    [[maybe_unused]] void transform(std::complex<double> **data) const;
+    [[maybe_unused]] static void sync();
+
     [[maybe_unused]] std::chrono::duration<double, std::milli> time_transform(int runs) override;
 };
 
