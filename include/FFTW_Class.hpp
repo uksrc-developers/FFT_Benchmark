@@ -8,8 +8,6 @@
 #include "Abstract_FFT.hpp"
 #include <map>
 
-
-
 class FFTW_Class final : Abstract_FFT{
     private:
         std::complex<double> *source_data{};

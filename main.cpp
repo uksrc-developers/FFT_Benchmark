@@ -20,16 +20,16 @@ template<class FFT_Class>
 void memory_run(std::vector<float> const &memories, int runs = 5, bool plot = false){
     for (float mem : memories){
         FFT_Class fft_class(mem);
-#if __has_include( "matplotlibcpp.h" )
-        if ( plot){
-            fft_class.transform();
-            create_postplot(
-                fft_class.get_source(),
-                fft_class.get_element_count(),
-                fft_class.name()+" "+std::to_string(mem)+" MB" ,
-                fft_class.name() + "_transform_" + std::to_string(mem) + "MB");
-        }
-#endif
+//#if __has_include( "matplotlibcpp.h" )
+//        if ( plot){
+//            fft_class.transform();
+//            create_postplot(
+//                fft_class.get_source(),
+//                fft_class.get_element_count(),
+//                fft_class.name()+" "+std::to_string(mem)+" MB" ,
+//                fft_class.name() + "_transform_" + std::to_string(mem) + "MB");
+//        }
+//#endif
         auto time = fft_class.time_transform(runs).count();
         auto checksum = compare_data(fft_class.get_source(), fft_class.get_element_count());
         std::cout << fft_class.name() << ", \t\t" <<

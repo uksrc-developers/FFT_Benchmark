@@ -166,31 +166,31 @@ float compare_data(const std::complex<double>* v, const int element_count){
     return static_cast<float>(abs(sum));
 }
 
-#if __has_include( "matplotlibcpp.h" )
-void create_preplot(std::complex<double>* source_data, int element_count, const std::string& title, const std::string& file_name){
-    const int vector_side = sqrt(element_count);
-    plt::figure_size(1200, 780);
-    constexpr int colors = 1;
-    plt::title(title);
-    std::vector<float> plot = pre_plot_vector(source_data, element_count);
-    plt::imshow(&(plot[0]),
-                          vector_side,
-                          vector_side, colors,
-                          std::map<std::string, std::string>{{"origin", "lower"}});
-    plt::save("Plots/" + file_name + ".png");
-}
-
-void create_postplot(std::complex<double>* source_data, int element_count, const std::string& title, const std::string& file_name){
-    const int vector_side = sqrt(element_count);
-    plt::figure_size(1200, 780);
-    constexpr int colors = 1;
-    plt::title(title);
-    std::vector<float> plot = post_plot_vector(source_data, element_count);
-    plt::imshow(&(plot[0]),
-                vector_side,
-                vector_side, colors,
-                std::map<std::string, std::string>{{"origin", "lower"}});
-    plt::save("Plots/" + file_name + ".png");
-}
-#endif
+//#if __has_include( "matplotlibcpp.h" )
+//void create_preplot(std::complex<double>* source_data, int element_count, const std::string& title, const std::string& file_name){
+//    const int vector_side = sqrt(element_count);
+//    plt::figure_size(1200, 780);
+//    constexpr int colors = 1;
+//    plt::title(title);
+//    std::vector<float> plot = pre_plot_vector(source_data, element_count);
+//    plt::imshow(&(plot[0]),
+//                          vector_side,
+//                          vector_side, colors,
+//                          std::map<std::string, std::string>{{"origin", "lower"}});
+//    plt::save("Plots/" + file_name + ".png");
+//}
+//
+//void create_postplot(std::complex<double>* source_data, int element_count, const std::string& title, const std::string& file_name){
+//    const int vector_side = sqrt(element_count);
+//    plt::figure_size(1200, 780);
+//    constexpr int colors = 1;
+//    plt::title(title);
+//    std::vector<float> plot = post_plot_vector(source_data, element_count);
+//    plt::imshow(&(plot[0]),
+//                vector_side,
+//                vector_side, colors,
+//                std::map<std::string, std::string>{{"origin", "lower"}});
+//    plt::save("Plots/" + file_name + ".png");
+//}
+//#endif
 
