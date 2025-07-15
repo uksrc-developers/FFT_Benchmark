@@ -32,9 +32,9 @@ void memory_run(std::vector<float> const &memories, int runs = 5, bool plot = fa
 //#endif
         auto time = fft_class.time_transform(runs).count();
         auto checksum = compare_data(fft_class.get_source(), fft_class.get_element_count());
-        std::cout << fft_class.name() << ", \t\t" <<
-                     fft_class.get_memory()/1000000 << ", \t\t" <<
-                     time << ", \t" <<
+        std::cout << fft_class.name() << ",\t\t" <<
+                     fft_class.get_memory()/1000000 << ",\t\t" <<
+                     time << ",\t" <<
                      checksum << "\n";
         ;
     }
@@ -136,13 +136,13 @@ int main(int argc, char **argv) {
         }
     }
 
-    std::cout << sizeof(std::complex<double>) << "\n";
+    //std::cout << sizeof(std::complex<double>) << "\n";
 
     std::vector<float> memory_sizes = double_space(mem_start, mem_count);
-    for (const float i : memory_sizes ){
-        std::cout << i << ", ";
-    }
-    std::cout << "\n";
+    //for (const float i : memory_sizes ){
+    //    std::cout << i << ", ";
+    //}
+    //std::cout << "\n";
 
     //    std::vector<float> memory_sizes = {2000};
     std::cout << "Run_Count: " << run_count << "\n";

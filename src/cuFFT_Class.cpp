@@ -389,11 +389,11 @@ void cuFFT_Class::split_fft(std::complex<double> **data, const int element_count
 }
 
 void cuFFT_Class::transform(){
-    //cufftExecZ2Z(p,
-    //             reinterpret_cast<cufftDoubleComplex *>(source_data),
-    //             reinterpret_cast<cufftDoubleComplex *>(source_data), CUFFT_FORWARD);
-    //cudaDeviceSynchronize();
-    CT_radix_2<cuFFT_Class>(*this);
+    cufftExecZ2Z(p,
+                 reinterpret_cast<cufftDoubleComplex *>(source_data),
+                 reinterpret_cast<cufftDoubleComplex *>(source_data), CUFFT_FORWARD);
+    cudaDeviceSynchronize();
+    //CT_radix_2<cuFFT_Class>(*this);
 }
 
 void cuFFT_Class::transform(std::complex<double> **data) const {
