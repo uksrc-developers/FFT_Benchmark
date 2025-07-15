@@ -161,5 +161,6 @@ int main(int argc, char **argv) {
         memory_run<rocFFT_Class>(memory_sizes, run_count, Plot);
     }
 #endif
+    std::cout << "Run_Finished";
     return 0;
 }
