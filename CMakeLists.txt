@@ -4,12 +4,12 @@ set( CMAKE_CXX_STANDARD 23 )
 
 set( SOURCES include/Abstract_FFT.hpp src/Data_Functions.cpp include/Data_Functions.hpp )
 
-option( ONEAPI "Enable OneAPI" OFF)
-if ( ONEAPI )
-    set(ONEAPI_DIR "/opt/intel/oneapi/mkl/2025.1" CACHE PATH "Root directory of fftw3 installation")
-    find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
-    set( LIBRARIES MKL::MKL)
-else()
+#option( ONEAPI "Enable OneAPI" OFF)
+#if ( ONEAPI )
+#    set(ONEAPI_DIR "/opt/intel/oneapi/mkl/2025.1" CACHE PATH "Root directory of fftw3 installation")
+#    find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
+#    set( LIBRARIES MKL::MKL)
+#else()
     # Inclusion of FFTW3, not optional
     set(FFTW3_DIR "/usr/local" CACHE PATH "Root directory of fftw3 installation")
     find_library(FFTW3_LIBRARY
@@ -26,7 +26,7 @@ else()
     endif(NOT FFTW3_LIBRARY AND NOT FFTW3_INCLUDE_DIR)
     include_directories(${FFTW3_INCLUDE_DIR})
     set( LIBRARIES ${FFTW3_LIBRARY})
-endif()
+#endif()
 
 list( APPEND SOURCES src/FFTW_Class.cpp include/FFTW_Class.hpp )
 
