@@ -32,8 +32,8 @@ void memory_run(std::vector<float> const &memories, int runs = 5, bool plot = fa
 //#endif
         auto time = fft_class.time_transform(runs).count();
         auto checksum = compare_data(fft_class.get_source(), fft_class.get_element_count());
-        std::cout << fft_class.name() << ",\t\t" <<
-                     fft_class.get_memory()/1000000 << ",\t\t" <<
+        std::cout << fft_class.name() << ",\t" <<
+                     fft_class.get_memory()/1000000 << ",\t" <<
                      time << ",\t" <<
                      checksum << "\n";
         ;
@@ -156,6 +156,7 @@ int main(int argc, char **argv) {
         memory_run<cuFFT_Class>(memory_sizes, run_count, Plot);
     }
 #endif
+
 #if __has_include( <rocfft.h> )
     if (rocFFT){
         memory_run<rocFFT_Class>(memory_sizes, run_count, Plot);
