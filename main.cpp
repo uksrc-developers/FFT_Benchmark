@@ -27,16 +27,16 @@ int main(int argc, char **argv) {
         if (FFTW){
             memory_run<FFTW_Class>(memories, run_count, Plot);
         }
-#ifdef CUDA_FFT
+        #ifdef CUDA_FFT
         if (cuFFT){
             memory_run<cuFFT_Class>(memories, run_count, Plot);
         }
-#endif
-#ifdef ROC_FFT
+        #endif
+        #ifdef ROC_FFT
         if (rocFFT){
             memory_run<rocFFT_Class>(memories, run_count, Plot);
         }
-#endif
+        #endif
     } else {
         cout << "Run_Count: " << run_count << "; With elements.\n";
         cout << "FFT_Code,\tMem_Size[MB],\tAvg_time[ms],\tCheck_Value\n";
@@ -44,16 +44,16 @@ int main(int argc, char **argv) {
         if (FFTW){
             element_run<FFTW_Class>(elements, run_count, Plot);
         }
-#ifdef CUDA_FFT
+        #ifdef CUDA_FFT
         if (cuFFT){
             element_run<cuFFT_Class>(elements, run_count, Plot);
         }
-#endif
-#ifdef ROC_FFT
+        #endif
+        #ifdef ROC_FFT
         if (rocFFT){
             element_run<rocFFT_Class>(elements, run_count, Plot);
         }
-#endif
+        #endif
     }
     cout << "Run_Finished\n";
     return 0;

@@ -6,6 +6,7 @@
 #pragma once
 
 #ifdef PYTHON_PLOTTING
+#include <cmath>
 #include <complex>
 #include "matplotlibcpp.h"
 

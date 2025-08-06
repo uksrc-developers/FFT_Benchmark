@@ -3,7 +3,6 @@
 //
 #import "../include/Run_Functions.hpp"
 
-
 std::tuple<bool, bool, bool, bool, bool, int, int, float> retrieve_arguments(int argc, char **argv) {
     bool Mem_Run = false;
     bool Plot = false;

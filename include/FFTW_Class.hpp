@@ -4,6 +4,10 @@
 #ifndef FFT_BENCH_FFTW_CLASS_HPP
 #define FFT_BENCH_FFTW_CLASS_HPP
 #pragma once
+#include <cmath>
+#include <chrono>
+#include <string>
+#include <complex>
 #include <fftw3.h>
 
 #include "Data_Functions.hpp"

@@ -4,9 +4,11 @@
 #ifndef FFT_BENCH_ROCFFT_CLASS_HPP
 #define FFT_BENCH_ROCFFT_CLASS_HPP
 #pragma once
+#include <chrono>
+#include <string>
+#include <complex>
 #include <rocfft.h>
 #include <hip/hip_runtime_api.h>
-#include <map>
 
 #include "Data_Functions.hpp"
 #include "Abstract_FFT.hpp"

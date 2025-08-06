@@ -4,8 +4,9 @@
 #ifndef FFT_BENCH_ABSTRACT_FFT_HPP
 #define FFT_BENCH_ABSTRACT_FFT_HPP
 #pragma once
-#include <complex>
 #include <chrono>
+#include <string>
+#include <complex>
 
 class Abstract_FFT {
 public:

@@ -117,7 +117,6 @@ check_cxx_source_compiles("
 " HAS_AVX2)
 
 if (HAS_AVX2)
-    message(STATUS "AVX2 supported by compiler.")
     target_compile_options(FFT_Bench PRIVATE -O3 -mavx2 -mfma -funroll-loops)
     target_compile_definitions(FFT_Bench PRIVATE USE_AVX2)
     add_definitions(-DUSE_AVX2)

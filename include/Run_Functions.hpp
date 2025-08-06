@@ -4,9 +4,12 @@
 #ifndef RUN_FUNCTIONS_HPP
 #define RUN_FUNCTIONS_HPP
 #pragma once
-#include <vector>
-#include <getopt.h>
 #include <tuple>
+#include <vector>
+#include <cassert>
+#include <getopt.h>
+#include <iostream>
+#include <stdexcept>
 
 #include "Abstract_FFT.hpp"
 #include "Plotting_Functions.hpp"
