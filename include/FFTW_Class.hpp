@@ -32,7 +32,7 @@ class FFTW_Class final : public Abstract_FFT{
 
         [[maybe_unused]] void transform() override { fftw_execute(p); };
         [[maybe_unused]] void cooley_tukey() override { CT_transform(*this, 2); };
-        [[maybe_unused]] void partial_transform(std::complex<double>* partial_array, std::size_t size) override;
+        [[maybe_unused]] void partial_transform(std::complex<double>* partial_array, int size) override;
         [[maybe_unused]] std::chrono::duration<double, std::milli> time_transform(int runs) override;
 };
 #endif //FFT_BENCH_FFTW_CLASS_HPP

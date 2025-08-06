@@ -31,35 +31,7 @@ cuFFT_Class::cuFFT_Class(const float memory_size){ // memory_size given in MB
         );
     fill_vector(source_data, vector_element_count);
 
-    size_t mf, ma;
-    cudaMemGetInfo(&mf, &ma);
-    const size_t compare_mf = mf*4/7;
-
-    std::vector<int> split_levels = {1,2,3,4,5,7,8};
-    bool split_found = false;
-    for (int level : split_levels) {
-        size_t this_level_workEstimate = 0;
-        const cufftResult this_level_result = cufftEstimate1d(vector_element_count/level, CUFFT_Z2Z, 1, &this_level_workEstimate);
-        if (this_level_result != CUFFT_SUCCESS) {
-            continue;
-        }
-        if (compare_mf > (this_level_workEstimate + vector_memory_size/level)) {
-            const cufftResult result = cufftPlan1d(&p, vector_element_count/level, CUFFT_Z2Z, 1);
-            if (result != CUFFT_SUCCESS) {
-                throw std::invalid_argument( cufftGetErrorString(result));
-            }
-            if (level > 1) {
-                split_level = level;
-            } else {
-                split_level = 0;
-            }
-            split_found = true;
-            break;
-        }
-    }
-    if (!split_found) {
-        transform_fail = true;
-    }
+    level_check();
 }
 
 cuFFT_Class::cuFFT_Class(const int element_count){ // memory_size given in MB
@@ -74,6 +46,10 @@ cuFFT_Class::cuFFT_Class(const int element_count){ // memory_size given in MB
         );
     fill_vector(source_data, vector_element_count);
 
+    level_check();
+}
+
+void cuFFT_Class::level_check() {
     size_t mf, ma;
     cudaMemGetInfo(&mf, &ma);
     const size_t compare_mf = mf*4/7;
@@ -81,23 +57,25 @@ cuFFT_Class::cuFFT_Class(const int element_count){ // memory_size given in MB
     std::vector<int> split_levels = {1,2,3,4,5,7,8};
     bool split_found = false;
     for (int level : split_levels) {
-        size_t this_level_workEstimate = 0;
-        const cufftResult this_level_result = cufftEstimate1d(vector_element_count/level, CUFFT_Z2Z, 1, &this_level_workEstimate);
-        if (this_level_result != CUFFT_SUCCESS) {
-            continue;
-        }
-        if (compare_mf > (this_level_workEstimate + vector_memory_size/level)) {
-            const cufftResult result = cufftPlan1d(&p, vector_element_count/level, CUFFT_Z2Z, 1);
-            if (result != CUFFT_SUCCESS) {
-                throw std::invalid_argument( cufftGetErrorString(result));
+        if (vector_element_count%level == 0) {
+            size_t this_level_workEstimate = 0;
+            const cufftResult this_level_result = cufftEstimate1d(vector_element_count/level, CUFFT_Z2Z, 1, &this_level_workEstimate);
+            if (this_level_result != CUFFT_SUCCESS) {
+                continue;
             }
-            if (level > 1) {
-                split_level = level;
-            } else {
-                split_level = 0;
+            if (compare_mf > (this_level_workEstimate + vector_memory_size/level)) {
+                const cufftResult result = cufftPlan1d(&p, vector_element_count/level, CUFFT_Z2Z, 1);
+                if (result != CUFFT_SUCCESS) {
+                    throw std::invalid_argument( cufftGetErrorString(result));
+                }
+                if (level > 1) {
+                    split_level = level;
+                } else {
+                    split_level = 0;
+                }
+                split_found = true;
+                break;
             }
-            split_found = true;
-            break;
         }
     }
     if (!split_found) {
@@ -122,7 +100,7 @@ void cuFFT_Class::transform(){
     }
 }
 
-void cuFFT_Class::partial_transform(std::complex<double>* partial_array, std::size_t size) {
+void cuFFT_Class::partial_transform(std::complex<double>* partial_array, int size) {
     const cufftResult result = cufftExecZ2Z(
         p,
         reinterpret_cast<cufftDoubleComplex *>(partial_array),

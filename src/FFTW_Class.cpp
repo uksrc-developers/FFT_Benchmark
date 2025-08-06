@@ -33,9 +33,9 @@ FFTW_Class::FFTW_Class(const int element_count){
 
 }
 
-void FFTW_Class::partial_transform(std::complex<double>* partial_array, std::size_t size) {
+void FFTW_Class::partial_transform(std::complex<double>* partial_array, int size) {
     p = fftw_plan_dft_1d(
-        static_cast<int>(size),
+        size,
         reinterpret_cast<fftw_complex *>(partial_array),
         reinterpret_cast<fftw_complex *>(partial_array),
         FFTW_FORWARD, FFTW_ESTIMATE

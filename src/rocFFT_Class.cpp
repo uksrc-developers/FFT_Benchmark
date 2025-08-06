@@ -11,15 +11,14 @@ rocFFT_Class::rocFFT_Class(float memory_size){
     std::vector<size_t> length = {static_cast<unsigned long>( vector_element_count )};
     vector_memory_size = (vector_element_count*sizeof(std::complex<double>));
     
-    source_data = (std::complex<double> *)malloc(vector_memory_size);
+    source_data = static_cast<std::complex<double> *>(malloc(vector_memory_size));
     fill_vector(source_data, vector_element_count);
-    
     assert( hipSetDevice(0) == hipSuccess );
 
-    // Make data managed by AMD Kernel
-    assert( hipMalloc(&gpu_source_data, vector_memory_size) == hipSuccess );
-    assert( hipMemcpy(gpu_source_data, source_data, vector_memory_size, hipMemcpyHostToDevice) == hipSuccess );
-    assert( hipDeviceSynchronize() == hipSuccess );
+    // Make data managed by AMD Kernel. Now done in send_data to comply with split needs.
+//    assert( hipMalloc(&gpu_source_data, vector_memory_size) == hipSuccess );
+//    assert( hipMemcpy(gpu_source_data, source_data, vector_memory_size, hipMemcpyHostToDevice) == hipSuccess );
+//    assert( hipDeviceSynchronize() == hipSuccess );
 
     assert( rocfft_plan_description_create(&p_desc) == rocfft_status_success );
     assert( 
@@ -35,44 +34,118 @@ rocFFT_Class::rocFFT_Class(float memory_size){
                 1, // output stride length (size_t out_strides_size)
                 nullptr, // output stride data pointer (size_t *out_strides)
                 0) == rocfft_status_success );
-    assert(
-        rocfft_plan_create(
-            &p, // plan from the rocFFT class
-            rocfft_placement_inplace, // result placement (rocfft-result_placement) in this case, into the same array as the input
-            rocfft_transform_type_complex_forward, // direction and type of transform, here forward from complex to complex (rocfft_transform_type)
-            rocfft_precision_double, // precision of transform (rocfft_precision)
-            length.size(), // size_t dimensions of the transform 
-            length.data(), // pointer to size_t of the array size to be transformed with this plan
-            1, // size_t of number of transforms to perform
-            p_desc) 
-            == rocfft_status_success ); // plan description (rocfft_plan_description)
-    // Get the execution info for the fft plan (in particular, work memory requirements):
-    assert( rocfft_plan_get_work_buffer_size(p, &p_workbuff_size) == rocfft_status_success );
-
-    // If the transform requires work memory, allocate a work buffer:
-    if(p_workbuff_size > 0)
-    {
-        assert(rocfft_execution_info_create(&p_info) == rocfft_status_success);
-        assert( hipMalloc(&p_workbuff, p_workbuff_size) == hipSuccess );
-        assert( rocfft_execution_info_set_work_buffer(p_info, p_workbuff, p_workbuff_size) == rocfft_status_success );
-    }
-
+//    assert(
+//        rocfft_plan_create(
+//            &p, // plan from the rocFFT class
+//            rocfft_placement_inplace, // result placement (rocfft-result_placement) in this case, into the same array as the input
+//            rocfft_transform_type_complex_forward, // direction and type of transform, here forward from complex to complex (rocfft_transform_type)
+//            rocfft_precision_double, // precision of transform (rocfft_precision)
+//            length.size(), // size_t dimensions of the transform
+//            length.data(), // pointer to size_t of the array size to be transformed with this plan
+//            1, // size_t of number of transforms to perform
+//            p_desc)
+//            == rocfft_status_success ); // plan description (rocfft_plan_description)
+//    // Get the execution info for the fft plan (in particular, work memory requirements):
+//    assert( rocfft_plan_get_work_buffer_size(p, &p_workbuff_size) == rocfft_status_success );
+//
+//    // If the transform requires work memory, allocate a work buffer:
+//    if(p_workbuff_size > 0)
+//    {
+//        assert(rocfft_execution_info_create(&p_info) == rocfft_status_success);
+//        assert( hipMalloc(&p_workbuff, p_workbuff_size) == hipSuccess );
+//        assert( rocfft_execution_info_set_work_buffer(p_info, p_workbuff, p_workbuff_size) == rocfft_status_success );
+//    }
 }
 
-std::complex<double>* rocFFT_Class::get_source(){
-	assert( hipDeviceSynchronize() == hipSuccess );
-	assert( hipMemcpy(source_data, gpu_source_data, vector_memory_size, hipMemcpyDeviceToHost) == hipSuccess );
-	return source_data;
+rocFFT_Class::level_check() {
+    size_t mf, ma;
+    assert( hipMemGetInfo(&mf, &ma) == hipSuccess );
+    const size_t compare_mf = mf*4/7;
+
+    std::vector<int> split_levels = {1,2,3,4,5,7,8};
+    bool split_found = false;
+    for (int level : split_levels) {
+        if (vector_element_count%level == 0) {
+            size_t this_level_workEstimate = 0;
+            std::vector<size_t> length = {static_cast<unsigned long>( vector_element_count/level )};
+            assert(
+                rocfft_plan_create(
+                    &p, // plan from the rocFFT class
+                    rocfft_placement_inplace, // result placement (rocfft-result_placement) in this case, into the same array as the input
+                    rocfft_transform_type_complex_forward, // direction and type of transform, here forward from complex to complex (rocfft_transform_type)
+                    rocfft_precision_double, // precision of transform (rocfft_precision)
+                    length.size(), // size_t dimensions of the transform
+                    length.data(), // pointer to size_t of the array size to be transformed with this plan
+                    1, // size_t of number of transforms to perform
+                    p_desc)
+                    == rocfft_status_success ); // plan description (rocfft_plan_description)
+            // Get the execution info for the fft plan (in particular, work memory requirements):
+            assert( rocfft_plan_get_work_buffer_size(p, &this_level_workEstimate) == rocfft_status_success );
+
+            if (compare_mf > (this_level_workEstimate + vector_memory_size/level)) {
+                p_workbuff_size = this_level_workEstimate;
+                // If the transform requires work memory, allocate a work buffer:
+                if(p_workbuff_size > 0)
+                {
+                    assert(rocfft_execution_info_create(&p_info) == rocfft_status_success);
+                    assert( hipMalloc(&p_workbuff, p_workbuff_size) == hipSuccess );
+                    assert( rocfft_execution_info_set_work_buffer(p_info, p_workbuff, p_workbuff_size) == rocfft_status_success );
+                }
+                if (level > 1) {
+                    split_level = level;
+                } else {
+                    split_level = 0;
+                }
+                split_found = true;
+                break;
+            }
+            assert( rocfft_plan_destroy(p) == rocfft_status_success );
+            p = nullptr;
+        }
+    }
+}
+
+void rocFFT_Class::send_data(std::complex<double>* cpu_data, int array_length){
+    size_t sent_data_memory_size = (array_length*sizeof(std::complex<double>));
+    assert( hipMalloc(&gpu_source_data, sent_data_memory_size) == hipSuccess );
+    assert( hipMemcpy(gpu_source_data, cpu_data, sent_data_memory_size, hipMemcpyHostToDevice) == hipSuccess );
+    assert( hipDeviceSynchronize() == hipSuccess );
 };
 
+void rocFFT_Class::get_data(std::complex<double>* cpu_data, int array_length){
+    size_t sent_data_memory_size = (array_length*sizeof(std::complex<double>));
+	assert( hipDeviceSynchronize() == hipSuccess );
+	assert( hipMemcpy(cpu_data, gpu_source_data, sent_data_memory_size, hipMemcpyDeviceToHost) == hipSuccess );
+    assert( hipFree(&gpu_source_data) == hipSuccess );
+};
+
+
 void rocFFT_Class::transform() {
-    assert( 
+    if (split_level == 0) {
+        send_data(source_data, vector_element_count);
+        assert(
+            rocfft_execute(
+                p, // plan
+                ( void** )&gpu_source_data, // in_buffer
+                nullptr, // out_buffer
+                p_info) == rocfft_status_success ); // execution info
+        assert( hipDeviceSynchronize() == hipSuccess );
+        get_data(source_data, vector_element_count);
+    } else {
+        cooley_tukey();
+    }
+}
+
+void rocFFT_Class::partial_transform(std::complex<double>* partial_array, const int size) {
+    send_data(partial_array, size);
+    assert(
         rocfft_execute(
             p, // plan
             ( void** )&gpu_source_data, // in_buffer
             nullptr, // out_buffer
-            p_info) == rocfft_status_success ); // execution info 
+            p_info) == rocfft_status_success ); // execution info
     assert( hipDeviceSynchronize() == hipSuccess );
+    get_data(partial_array, size);
 }
 
 std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(int runs) {
@@ -82,7 +155,6 @@ std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(int runs)
         transform();
         std::chrono::time_point t2 = std::chrono::high_resolution_clock::now();times += (t2 - t1);
     }
-    auto _ = get_source();
     return  times / runs;
 }
 

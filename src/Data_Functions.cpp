@@ -357,14 +357,14 @@ void CT_radix_8(Abstract_FFT& fft_obj) {
     std::complex<double>* v6 = v + 6 * eighth;
     std::complex<double>* v7 = v + 7 * eighth;
 
-    fft_obj.partial_transform(v0, eighth);
-    fft_obj.partial_transform(v1, eighth);
-    fft_obj.partial_transform(v2, eighth);
-    fft_obj.partial_transform(v3, eighth);
-    fft_obj.partial_transform(v4, eighth);
-    fft_obj.partial_transform(v5, eighth);
-    fft_obj.partial_transform(v6, eighth);
-    fft_obj.partial_transform(v7, eighth);
+    fft_obj.partial_transform(v0, static_cast<int>(eighth));
+    fft_obj.partial_transform(v1, static_cast<int>(eighth));
+    fft_obj.partial_transform(v2, static_cast<int>(eighth));
+    fft_obj.partial_transform(v3, static_cast<int>(eighth));
+    fft_obj.partial_transform(v4, static_cast<int>(eighth));
+    fft_obj.partial_transform(v5, static_cast<int>(eighth));
+    fft_obj.partial_transform(v6, static_cast<int>(eighth));
+    fft_obj.partial_transform(v7, static_cast<int>(eighth));
 
 #pragma omp parallel for
     for (int k = 0; k < eighth; k++) {

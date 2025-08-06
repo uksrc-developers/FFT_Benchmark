@@ -20,7 +20,7 @@ public:
 
     virtual void transform() = 0;
     virtual void cooley_tukey() = 0;
-    virtual void partial_transform(std::complex<double>* partial_array, std::size_t size) = 0;
+    virtual void partial_transform(std::complex<double>* partial_array, int size) = 0;
     virtual std::chrono::duration<double, std::milli> time_transform(int runs) = 0;
 };
 #endif //FFT_BENCH_ABSTRACT_FFT_HPP
