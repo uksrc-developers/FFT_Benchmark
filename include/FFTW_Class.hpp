@@ -10,13 +10,11 @@
 #include "Abstract_FFT.hpp"
 
 class FFTW_Class final : public Abstract_FFT{
-    private:
-        std::complex<double> *source_data{};
-        int vector_side;
-        int vector_element_count;
-        size_t vector_memory_size;
-
-        fftw_plan p;
+    std::complex<double> *source_data{};
+    int vector_side;
+    int vector_element_count;
+    size_t vector_memory_size;
+    fftw_plan p;
 
     public:
         bool transform_fail = false;
