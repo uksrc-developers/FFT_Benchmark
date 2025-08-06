@@ -19,6 +19,7 @@ class rocFFT_Class final : public Abstract_FFT{
     int vector_side;
     int vector_element_count;
     size_t vector_memory_size;
+    size_t transform_memory_size;
     size_t p_workbuff_size = 0;
 
     rocfft_plan p = nullptr;
