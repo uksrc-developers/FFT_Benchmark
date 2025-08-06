@@ -2,7 +2,7 @@ cmake_minimum_required( VERSION 3.22 )
 project( FFT_Bench LANGUAGES CXX )
 set( CMAKE_CXX_STANDARD 23 )
 
-set( SOURCES include/Abstract_FFT.hpp src/Data_Functions.cpp include/Data_Functions.hpp )
+set( SOURCES src/Data_Functions.cpp src/Run_Functions.cpp )#set( SOURCES include/Abstract_FFT.hpp src/Data_Functions.cpp include/Data_Functions.hpp )
 
 option( ONEAPI "Enable OneAPI" OFF)
 if ( ONEAPI )
@@ -28,7 +28,7 @@ else()
     set( LIBRARIES ${FFTW3_LIBRARY})
 endif()
 
-list( APPEND SOURCES src/FFTW_Class.cpp include/FFTW_Class.hpp )
+list( APPEND SOURCES src/FFTW_Class.cpp )#list( APPEND SOURCES src/FFTW_Class.cpp include/FFTW_Class.hpp )
 
 option( PYTHON_PLOTTING "Enable matplotlib plotting of fft outputs." OFF )
 if( PYTHON_PLOTTING )
@@ -37,7 +37,9 @@ if( PYTHON_PLOTTING )
         message(FATAL_ERROR "PYTHON_PLOTTING set to ON. Unable to find PythonLibs.")
     endif( NOT PythonLibs_FOUND )
     include_directories( ${PYTHON_INCLUDE_DIRS} )
+    list( APPEND SOURCES src/Plotting_Functions.cpp )
     list( APPEND LIBRARIES ${PYTHON_LIBRARIES} )
+    add_definitions( -DPYTHON_PLOTTING )
 endif( PYTHON_PLOTTING )
 
 option( CUDA_FFT "Enable cuFFT." OFF )
@@ -68,8 +70,9 @@ if ( CUDA_FFT )
         message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find cuda_runtime")
     endif()
     include_directories( ${CUDART_INCLUDE_DIR} )
-    list( APPEND SOURCES src/cuFFT_Class.cpp include/cuFFT_Class.hpp )
+    list( APPEND SOURCES src/cuFFT_Class.cpp )  #list( APPEND SOURCES src/cuFFT_Class.cpp include/cuFFT_Class.hpp )
     list( APPEND LIBRARIES ${CUDART_LIBRARY} ${CUFFT_LIBRARY} )
+    add_definitions( -DCUDA_FFT )
 endif( CUDA_FFT )
 
 option( ROC_FFT "Enable rocFFT." OFF )
@@ -94,9 +97,32 @@ if( ROC_FFT )
     set(HIP_DIR "/opt/rocm" CACHE PATH "Root directory of rocm installation")
     find_package(hip REQUIRED HINTS "${HIP_DIR}/lib/cmake/hip")
     include_directories( ${ROCFFT_INCLUDE_DIR} ${HIP_INCLUDE_DIR} )
-    list( APPEND SOURCES src/rocFFT_Class.cpp include/rocFFT_Class.hpp )
+    list( APPEND SOURCES src/rocFFT_Class.cpp ) #list( APPEND SOURCES src/rocFFT_Class.cpp include/rocFFT_Class.hpp )
     list( APPEND LIBRARIES ${ROCFFT_LIBRARY} ${HIP_LIBRARY}  )
+    add_definitions( -DROC_FFT )
 endif( ROC_FFT )
 
 add_executable( FFT_Bench main.cpp ${SOURCES} )
+target_include_directories(FFT_Bench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+include(CheckCXXSourceCompiles)
+set(CMAKE_REQUIRED_FLAGS "-mavx2 -mfma")
+# Check that the compiler supports compiling AVX2 code
+check_cxx_source_compiles("
+    #include <immintrin.h>
+    int main() {
+        __m256d x = _mm256_set1_pd(1.0);
+        return 0;
+    }
+" HAS_AVX2)
+
+if (HAS_AVX2)
+    message(STATUS "AVX2 supported by compiler.")
+    target_compile_options(FFT_Bench PRIVATE -O3 -mavx2 -mfma -funroll-loops)
+    target_compile_definitions(FFT_Bench PRIVATE USE_AVX2)
+    add_definitions(-DUSE_AVX2)
+else()
+    message(WARNING "AVX2 not supported. Falling back to default.")
+endif()
+
 target_link_libraries( FFT_Bench ${LIBRARIES} )

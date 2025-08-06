@@ -1,16 +1,17 @@
 //
 // Created by marcuskeil on 31/01/25.
 //
-
 #ifndef FFT_BENCH_ROCFFT_CLASS_HPP
 #define FFT_BENCH_ROCFFT_CLASS_HPP
+#pragma once
 #include <rocfft.h>
-#include "Data_Functions.hpp"
-#include "Abstract_FFT.hpp"
 #include <hip/hip_runtime_api.h>
 #include <map>
 
-class rocFFT_Class final : Abstract_FFT{
+#include "Data_Functions.hpp"
+#include "Abstract_FFT.hpp"
+
+class rocFFT_Class final : public Abstract_FFT{
     private:
         std::complex<double> *source_data{};
         std::complex<double> *gpu_source_data{};
@@ -23,8 +24,10 @@ class rocFFT_Class final : Abstract_FFT{
         void* p_workbuff = nullptr;
         rocfft_execution_info p_info = nullptr;
         rocfft_plan_description p_desc = nullptr;
-        
+
+        int split_level = 0;
     public:
+        bool transform_fail = false;
         explicit rocFFT_Class(float memory_size); // memory_size given in MB
         ~rocFFT_Class() override;
 
