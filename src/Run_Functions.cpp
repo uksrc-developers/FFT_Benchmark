@@ -55,7 +55,8 @@ std::tuple<bool, bool, bool, bool, bool, int, int, float> retrieve_arguments(int
                 break;
             case 'c':
                 repeat_count = static_cast<int>(strtod(optarg, nullptr));
-                assert(7>run_count>=1);
+                assert(run_count >= 1);
+                assert(run_count< 7);
                 break;
             case 's':
                 mem_start = float(strtod(optarg, nullptr));

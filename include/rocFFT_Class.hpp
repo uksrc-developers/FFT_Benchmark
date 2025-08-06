@@ -40,8 +40,8 @@ class rocFFT_Class final : public Abstract_FFT{
         [[maybe_unused]] [[nodiscard]] inline std::complex<double>* get_source() const override { return source_data; };
         [[maybe_unused]] [[nodiscard]] inline int get_element_count() const override { return vector_element_count; };
 
-        [[maybe_unused]] [[nodiscard]] void send_data(std::complex<double>* cpu_data, int array_length);
-        [[maybe_unused]] [[nodiscard]] void retrieve_data(std::complex<double>* cpu_data, int array_length);
+        [[maybe_unused]] void send_data(std::complex<double>* cpu_data, int array_length);
+        [[maybe_unused]] void retrieve_data(std::complex<double>* cpu_data, int array_length);
 
         [[maybe_unused]] void transform() override;
         [[maybe_unused]] void cooley_tukey() override { CT_transform(*this, split_level); };
