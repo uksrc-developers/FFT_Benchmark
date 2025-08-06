@@ -2,7 +2,7 @@ cmake_minimum_required( VERSION 3.22 )
 project( FFT_Bench LANGUAGES CXX )
 set( CMAKE_CXX_STANDARD 23 )
 
-set( SOURCES src/Data_Functions.cpp src/Run_Functions.cpp )#set( SOURCES include/Abstract_FFT.hpp src/Data_Functions.cpp include/Data_Functions.hpp )
+set( SOURCES src/Data_Functions.cpp src/Run_Functions.cpp )
 
 option( ONEAPI "Enable OneAPI" OFF)
 if ( ONEAPI )
@@ -10,7 +10,6 @@ if ( ONEAPI )
     find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
     set( LIBRARIES MKL::MKL)
 else()
-    # Inclusion of FFTW3, not optional
     set(FFTW3_DIR "/usr/local" CACHE PATH "Root directory of fftw3 installation")
     find_library(FFTW3_LIBRARY
             NAMES fftw3
@@ -28,7 +27,7 @@ else()
     set( LIBRARIES ${FFTW3_LIBRARY})
 endif()
 
-list( APPEND SOURCES src/FFTW_Class.cpp )#list( APPEND SOURCES src/FFTW_Class.cpp include/FFTW_Class.hpp )
+list( APPEND SOURCES src/FFTW_Class.cpp )
 
 option( PYTHON_PLOTTING "Enable matplotlib plotting of fft outputs." OFF )
 if( PYTHON_PLOTTING )
@@ -70,7 +69,7 @@ if ( CUDA_FFT )
         message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find cuda_runtime")
     endif()
     include_directories( ${CUDART_INCLUDE_DIR} )
-    list( APPEND SOURCES src/cuFFT_Class.cpp )  #list( APPEND SOURCES src/cuFFT_Class.cpp include/cuFFT_Class.hpp )
+    list( APPEND SOURCES src/cuFFT_Class.cpp )
     list( APPEND LIBRARIES ${CUDART_LIBRARY} ${CUFFT_LIBRARY} )
     add_definitions( -DCUDA_FFT )
 endif( CUDA_FFT )
@@ -97,10 +96,9 @@ if( ROC_FFT )
     set(HIP_DIR "/opt/rocm" CACHE PATH "Root directory of rocm installation")
     find_package(hip REQUIRED HINTS "${HIP_DIR}/lib/cmake/hip")
     include_directories( ${ROCFFT_INCLUDE_DIR} ${HIP_INCLUDE_DIR} )
-    list( APPEND SOURCES src/rocFFT_Class.cpp ) #list( APPEND SOURCES src/rocFFT_Class.cpp include/rocFFT_Class.hpp )
-    list( APPEND LIBRARIES ${ROCFFT_LIBRARY} ${HIP_LIBRARY}  )
     find_package(OpenMP REQUIRED)
-    list( APPEND LIBRARIES OpenMP::OpenMP_CXX)
+    list( APPEND SOURCES src/rocFFT_Class.cpp )
+    list( APPEND LIBRARIES ${ROCFFT_LIBRARY} ${HIP_LIBRARY} OpenMP::OpenMP_CXX )
     add_definitions( -DROC_FFT )
 endif( ROC_FFT )
 
@@ -110,7 +108,6 @@ target_include_directories(FFT_Bench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
 
 include(CheckCXXSourceCompiles)
 set(CMAKE_REQUIRED_FLAGS "-mavx2 -mfma")
-# Check that the compiler supports compiling AVX2 code
 check_cxx_source_compiles("
     #include <immintrin.h>
     int main() {
