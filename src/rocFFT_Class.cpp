@@ -115,7 +115,7 @@ void rocFFT_Class::level_check() {
                 // If the transform requires work memory, allocate a work buffer:
                 if(p_workbuff_size > 0)
                 {
-                    assert(rocfft_execution_info_create(&p_info) == rocfft_status_success);
+                    assert( rocfft_execution_info_create(&p_info) == rocfft_status_success );
                     assert( hipMalloc(&p_workbuff, p_workbuff_size) == hipSuccess );
                     assert( rocfft_execution_info_set_work_buffer(p_info, p_workbuff, p_workbuff_size) == rocfft_status_success );
                 }

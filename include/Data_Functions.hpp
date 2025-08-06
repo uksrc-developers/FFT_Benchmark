@@ -12,7 +12,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <algorithm>
-#include <immintrin.h>
+//#include <immintrin.h>
 
 #include "Abstract_FFT.hpp"
 
