@@ -11,14 +11,14 @@
 #include "Abstract_FFT.hpp"
 
 class cuFFT_Class final : public Abstract_FFT {
-    private:
-        std::complex<double> *source_data{};
-        int vector_side;
-        int vector_element_count;
-        size_t vector_memory_size;
+    std::complex<double> *source_data{};
+    int vector_side;
+    int vector_element_count;
+    size_t vector_memory_size;
 
-        cufftHandle p{};
-        int split_level = 0;
+    cufftHandle p{};
+    int split_level = 0;
+
     public:
         bool transform_fail = false;
         explicit cuFFT_Class(float memory_size); // memory_size given in MB

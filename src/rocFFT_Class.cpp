@@ -140,7 +140,7 @@ void rocFFT_Class::send_data(std::complex<double>* cpu_data, const int array_len
     assert( hipDeviceSynchronize() == hipSuccess );
 };
 
-void rocFFT_Class::get_data(std::complex<double>* cpu_data, const int array_length){
+void rocFFT_Class::retrieve_data(std::complex<double>* cpu_data, const int array_length){
     size_t sent_data_memory_size = (array_length*sizeof(std::complex<double>));
 	assert( hipDeviceSynchronize() == hipSuccess );
 	assert( hipMemcpy(cpu_data, gpu_source_data, sent_data_memory_size, hipMemcpyDeviceToHost) == hipSuccess );
@@ -157,7 +157,7 @@ void rocFFT_Class::transform() {
                 nullptr, // out_buffer
                 p_info) == rocfft_status_success ); // execution info
         assert( hipDeviceSynchronize() == hipSuccess );
-        get_data(source_data, vector_element_count);
+        retrieve_data(source_data, vector_element_count);
     } else {
         cooley_tukey();
     }
@@ -172,7 +172,7 @@ void rocFFT_Class::partial_transform(std::complex<double>* partial_array, const 
             nullptr, // out_buffer
             p_info) == rocfft_status_success ); // execution info
     assert( hipDeviceSynchronize() == hipSuccess );
-    get_data(partial_array, size);
+    retrieve_data(partial_array, size);
 }
 
 std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(const int runs) {

@@ -12,20 +12,20 @@
 #include "Abstract_FFT.hpp"
 
 class rocFFT_Class final : public Abstract_FFT{
-    private:
-        std::complex<double> *source_data{};
-        std::complex<double> *gpu_source_data{};
-        int vector_side;
-        int vector_element_count;
-        size_t vector_memory_size;
-        size_t p_workbuff_size = 0;
+    std::complex<double> *source_data{};
+    std::complex<double> *gpu_source_data{};
+    int vector_side;
+    int vector_element_count;
+    size_t vector_memory_size;
+    size_t p_workbuff_size = 0;
 
-        rocfft_plan p = nullptr;
-        void* p_workbuff = nullptr;
-        rocfft_execution_info p_info = nullptr;
-        rocfft_plan_description p_desc = nullptr;
+    rocfft_plan p = nullptr;
+    void* p_workbuff = nullptr;
+    rocfft_execution_info p_info = nullptr;
+    rocfft_plan_description p_desc = nullptr;
 
-        int split_level = 0;
+    int split_level = 0;
+
     public:
         bool transform_fail = false;
         explicit rocFFT_Class(float memory_size); // memory_size given in MB
@@ -35,12 +35,13 @@ class rocFFT_Class final : public Abstract_FFT{
         void level_check();
 
         [[maybe_unused]] inline std::string name() override { return "rocFFT"; };
-        [[maybe_unused]] [[nodiscard]] inline int get_side() override { return vector_side; };
+        [[maybe_unused]] [[nodiscard]] inline int get_side() const override { return vector_side; };
         [[maybe_unused]] [[nodiscard]] inline size_t get_memory() override { return vector_memory_size; };
-        [[maybe_unused]] [[nodiscard]] inline int get_element_count() override { return vector_element_count; };
+        [[maybe_unused]] [[nodiscard]] inline std::complex<double>* get_source() const override { return source_data; };
+        [[maybe_unused]] [[nodiscard]] inline int get_element_count() const override { return vector_element_count; };
 
         [[maybe_unused]] [[nodiscard]] void send_data(std::complex<double>* cpu_data, int array_length);
-        [[maybe_unused]] [[nodiscard]] void get_data(std::complex<double>* cpu_data, int array_length);
+        [[maybe_unused]] [[nodiscard]] void retrieve_data(std::complex<double>* cpu_data, int array_length);
 
         [[maybe_unused]] void transform() override;
         [[maybe_unused]] void cooley_tukey() override { CT_transform(*this, split_level); };
