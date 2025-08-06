@@ -3,7 +3,7 @@
 //
 #include "../include/cuFFT_Class.hpp"
 
-const char* cufftGetErrorString(cufftResult error) {
+const char* cufftGetErrorString(const cufftResult error) {
     switch (error) {
         case CUFFT_SUCCESS: return "CUFFT_SUCCESS";
         case CUFFT_INVALID_PLAN: return "CUFFT_INVALID_PLAN";
@@ -113,7 +113,7 @@ void cuFFT_Class::partial_transform(std::complex<double>* partial_array, int siz
     cudaDeviceSynchronize();
 }
 
-std::chrono::duration<double, std::milli> cuFFT_Class::time_transform(int runs) {
+std::chrono::duration<double, std::milli> cuFFT_Class::time_transform(const int runs) {
     std::chrono::duration<double> times{};
     for ( int i = 0; i < runs ; i++){
         std::chrono::time_point t1 = std::chrono::high_resolution_clock::now();

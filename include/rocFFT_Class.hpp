@@ -29,6 +29,7 @@ class rocFFT_Class final : public Abstract_FFT{
     public:
         bool transform_fail = false;
         explicit rocFFT_Class(float memory_size); // memory_size given in MB
+        explicit rocFFT_Class(int element_count);
         ~rocFFT_Class() override;
 
         void level_check();

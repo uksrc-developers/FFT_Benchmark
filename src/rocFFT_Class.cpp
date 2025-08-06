@@ -3,12 +3,11 @@
 //
 #include "../include/rocFFT_Class.hpp"
 
-rocFFT_Class::rocFFT_Class(float memory_size){
+rocFFT_Class::rocFFT_Class(const float memory_size){
     assert( rocfft_setup() == rocfft_status_success );
     
     vector_side = possible_vector_size(memory_size);
     vector_element_count = pow(vector_side, 2);
-    std::vector<size_t> length = {static_cast<unsigned long>( vector_element_count )};
     vector_memory_size = (vector_element_count*sizeof(std::complex<double>));
     
     source_data = static_cast<std::complex<double> *>(malloc(vector_memory_size));
@@ -55,9 +54,38 @@ rocFFT_Class::rocFFT_Class(float memory_size){
 //        assert( hipMalloc(&p_workbuff, p_workbuff_size) == hipSuccess );
 //        assert( rocfft_execution_info_set_work_buffer(p_info, p_workbuff, p_workbuff_size) == rocfft_status_success );
 //    }
+    level_check();
 }
 
-rocFFT_Class::level_check() {
+rocFFT_Class::rocFFT_Class(const int element_count){
+    assert( rocfft_setup() == rocfft_status_success );
+
+    vector_side = static_cast<int>(sqrt(element_count));
+    vector_element_count = element_count;
+    vector_memory_size = (vector_element_count*sizeof(std::complex<double>));
+
+    source_data = static_cast<std::complex<double> *>(malloc(vector_memory_size));
+    fill_vector(source_data, vector_element_count);
+    assert( hipSetDevice(0) == hipSuccess );
+
+    assert( rocfft_plan_description_create(&p_desc) == rocfft_status_success );
+    assert(
+        rocfft_plan_description_set_data_layout( // Alter plan description by setting the following data points
+                p_desc, //rocfft_plan_description pointer
+                rocfft_array_type_complex_interleaved, // input array type (rocfft_array_type)
+                rocfft_array_type_complex_interleaved, // output array type (rocfft_array_type)
+                nullptr, // size_t pointer in_offsets
+                nullptr, // size_t pointer out_offsets
+                1, // input stride length (size_t in_strides_size)
+                nullptr, // input stride data pointer (size_t *in_strides)
+                0, // input batch distance (size_t in_distance)
+                1, // output stride length (size_t out_strides_size)
+                nullptr, // output stride data pointer (size_t *out_strides)
+                0) == rocfft_status_success );
+    level_check();
+}
+
+void rocFFT_Class::level_check() {
     size_t mf, ma;
     assert( hipMemGetInfo(&mf, &ma) == hipSuccess );
     const size_t compare_mf = mf*4/7;
@@ -105,20 +133,19 @@ rocFFT_Class::level_check() {
     }
 }
 
-void rocFFT_Class::send_data(std::complex<double>* cpu_data, int array_length){
+void rocFFT_Class::send_data(std::complex<double>* cpu_data, const int array_length){
     size_t sent_data_memory_size = (array_length*sizeof(std::complex<double>));
     assert( hipMalloc(&gpu_source_data, sent_data_memory_size) == hipSuccess );
     assert( hipMemcpy(gpu_source_data, cpu_data, sent_data_memory_size, hipMemcpyHostToDevice) == hipSuccess );
     assert( hipDeviceSynchronize() == hipSuccess );
 };
 
-void rocFFT_Class::get_data(std::complex<double>* cpu_data, int array_length){
+void rocFFT_Class::get_data(std::complex<double>* cpu_data, const int array_length){
     size_t sent_data_memory_size = (array_length*sizeof(std::complex<double>));
 	assert( hipDeviceSynchronize() == hipSuccess );
 	assert( hipMemcpy(cpu_data, gpu_source_data, sent_data_memory_size, hipMemcpyDeviceToHost) == hipSuccess );
     assert( hipFree(&gpu_source_data) == hipSuccess );
 };
-
 
 void rocFFT_Class::transform() {
     if (split_level == 0) {
@@ -148,7 +175,7 @@ void rocFFT_Class::partial_transform(std::complex<double>* partial_array, const 
     get_data(partial_array, size);
 }
 
-std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(int runs) {
+std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(const int runs) {
     std::chrono::duration<double> times{};
     for ( int i = 0; i < runs ; i++){
         std::chrono::time_point t1 = std::chrono::high_resolution_clock::now();
