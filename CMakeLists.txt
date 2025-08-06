@@ -13,16 +13,16 @@ else()
     # Inclusion of FFTW3, not optional
     set(FFTW3_DIR "/usr/local" CACHE PATH "Root directory of fftw3 installation")
     find_library(FFTW3_LIBRARY
-      NAMES fftw3
-      PATHS ${FFTW3_DIR}/lib /usr/lib /usr/local/lib
-      NO_DEFAULT_PATH)
+            NAMES fftw3
+            PATHS ${FFTW3_DIR}/lib /usr/lib /usr/local/lib
+            NO_DEFAULT_PATH)
     find_path(FFTW3_INCLUDE_DIR
-      NAMES fftw3.h
-      PATHS ${FFTW3_DIR}/include /usr/include
-      NO_DEFAULT_PATH)
+            NAMES fftw3.h
+            PATHS ${FFTW3_DIR}/include /usr/include
+            NO_DEFAULT_PATH)
 
     if(NOT FFTW3_LIBRARY AND NOT FFTW3_INCLUDE_DIR)
-      message(FATAL_ERROR "fftw3 not found. Please specify FFTW3_DIR if it is in a non-standard location.")
+        message(FATAL_ERROR "fftw3 not found. Please specify FFTW3_DIR if it is in a non-standard location.")
     endif(NOT FFTW3_LIBRARY AND NOT FFTW3_INCLUDE_DIR)
     include_directories(${FFTW3_INCLUDE_DIR})
     set( LIBRARIES ${FFTW3_LIBRARY})
@@ -99,8 +99,11 @@ if( ROC_FFT )
     include_directories( ${ROCFFT_INCLUDE_DIR} ${HIP_INCLUDE_DIR} )
     list( APPEND SOURCES src/rocFFT_Class.cpp ) #list( APPEND SOURCES src/rocFFT_Class.cpp include/rocFFT_Class.hpp )
     list( APPEND LIBRARIES ${ROCFFT_LIBRARY} ${HIP_LIBRARY}  )
+    find_package(OpenMP REQUIRED)
+    list( APPEND LIBRARIES OpenMP::OpenMP_CXX)
     add_definitions( -DROC_FFT )
 endif( ROC_FFT )
+
 
 add_executable( FFT_Bench main.cpp ${SOURCES} )
 target_include_directories(FFT_Bench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

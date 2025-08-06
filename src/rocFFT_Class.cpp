@@ -119,6 +119,8 @@ void rocFFT_Class::level_check() {
                     assert( hipMalloc(&p_workbuff, p_workbuff_size) == hipSuccess );
                     assert( rocfft_execution_info_set_work_buffer(p_info, p_workbuff, p_workbuff_size) == rocfft_status_success );
                 }
+                transform_memory_size = (vector_element_count/level*sizeof(std::complex<double>));
+                assert( hipMalloc(&gpu_source_data, vector_memory_size/level) == hipSuccess );
                 if (level > 1) {
                     split_level = level;
                 } else {
@@ -134,17 +136,13 @@ void rocFFT_Class::level_check() {
 }
 
 void rocFFT_Class::send_data(std::complex<double>* cpu_data, const int array_length){
-    size_t sent_data_memory_size = (array_length*sizeof(std::complex<double>));
-    assert( hipMalloc(&gpu_source_data, sent_data_memory_size) == hipSuccess );
-    assert( hipMemcpy(gpu_source_data, cpu_data, sent_data_memory_size, hipMemcpyHostToDevice) == hipSuccess );
+    assert( hipMemcpy(gpu_source_data, cpu_data, transform_memory_size, hipMemcpyHostToDevice) == hipSuccess );
     assert( hipDeviceSynchronize() == hipSuccess );
 };
 
 void rocFFT_Class::retrieve_data(std::complex<double>* cpu_data, const int array_length){
-    size_t sent_data_memory_size = (array_length*sizeof(std::complex<double>));
+	assert( hipMemcpy(cpu_data, gpu_source_data, transform_memory_size, hipMemcpyDeviceToHost) == hipSuccess );
 	assert( hipDeviceSynchronize() == hipSuccess );
-	assert( hipMemcpy(cpu_data, gpu_source_data, sent_data_memory_size, hipMemcpyDeviceToHost) == hipSuccess );
-    assert( hipFree(&gpu_source_data) == hipSuccess );
 };
 
 void rocFFT_Class::transform() {
@@ -187,10 +185,13 @@ std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(const int
 
 rocFFT_Class::~rocFFT_Class() {
     free(source_data);
+    assert( hipFree(gpu_source_data) == hipSuccess );
+    gpu_source_data = nullptr;
 
     if(p_workbuff_size > 0) {
-        assert( hipFree(p_workbuff) == hipSuccess ); 
+        assert( hipFree(p_workbuff) == hipSuccess );
         assert( rocfft_execution_info_destroy(p_info) == rocfft_status_success );
+        p_workbuff = nullptr;
     }
 
     assert( rocfft_plan_description_destroy(p_desc) == rocfft_status_success );
@@ -199,4 +200,3 @@ rocFFT_Class::~rocFFT_Class() {
 
     assert( rocfft_cleanup() == rocfft_status_success );
 }
-
