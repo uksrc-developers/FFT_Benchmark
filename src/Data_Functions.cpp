@@ -63,7 +63,13 @@ void fill_vector(std::complex<double>* v, int element_count){
                                         int(dim/2 + 1) + int(dim*(dim/2 + 1)),
                                 });
     }
-#pragma omp parallel for schedule(static)
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for ( int i : mids) {
         v[i] = std::complex<double>(1, 0);
     }
@@ -89,16 +95,24 @@ inline std::complex<double> WKN(int k, int N) {
 }
 
 void CT_radix_2(Abstract_FFT& fft_obj) {
+    constexpr int radix = 2;
     std::complex<double>* v = fft_obj.get_source();
     const std::size_t N = fft_obj.get_element_count();
     const int N_int = static_cast<int>(N);
-    const std::size_t half = N / 2;
+    const std::size_t half = N / radix;
 
     std::vector<std::complex<double>> temp(N);
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (std::size_t i = 0; i < half; ++i) {
-        temp[i] = v[2 * i];
-        temp[i + half] = v[2 * i + 1];
+        std::size_t j = radix * i;
+        temp[i] = v[j];
+        temp[i + half] = v[j + 1];
     }
     std::copy(temp.begin(), temp.end(), v);
 
@@ -109,7 +123,13 @@ void CT_radix_2(Abstract_FFT& fft_obj) {
     fft_obj.partial_transform(v_o, half);
     //<<< FFT CALLS >>>
 
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int k = 0; k < half; k++) {
         auto w = WKN(static_cast<int>(k), N_int);
         std::complex<double> u = v_e[k];
@@ -120,7 +140,7 @@ void CT_radix_2(Abstract_FFT& fft_obj) {
 }
 
 void CT_radix_3(Abstract_FFT& fft_obj) {
-    int radix = 3;
+    const int radix = 3;
     std::complex<double>* v = fft_obj.get_source();
     const std::size_t N = fft_obj.get_element_count();
     const int N_int = static_cast<int>(N);
@@ -128,11 +148,18 @@ void CT_radix_3(Abstract_FFT& fft_obj) {
     const std::size_t third = N / radix;
     // Split into 3 sub-arrays: v0, v1, v2 interleaved
     std::vector<std::complex<double>> temp(N);
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (std::size_t i = 0; i < third; ++i) {
-        temp[i] = v[radix * i];       // v0
-        temp[i + third] = v[radix * i + 1]; // v1
-        temp[i + 2 * third] = v[radix * i + 2]; // v2
+        std::size_t j = radix * i;
+        temp[i] = v[j];       // v0
+        temp[i + third] = v[j + 1]; // v1
+        temp[i + 2 * third] = v[j + 2]; // v2
     }
     std::copy(temp.begin(), temp.end(), v);
 
@@ -148,7 +175,13 @@ void CT_radix_3(Abstract_FFT& fft_obj) {
 
 
     // Butterfly recombination
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (std::size_t k = 0; k < third; ++k) { // W^k_N = {cos( -2 * pi * i * k / N), sin( -2 * pi * i * k / N)}
         auto wk = WKN(static_cast<int>(k), N_int);
         auto w2k = WKN(static_cast<int>(k+third), N_int);
@@ -172,12 +205,19 @@ void CT_radix_4(Abstract_FFT& fft_obj) {
     const std::size_t fourth = N / radix;
 
     std::vector<std::complex<double>> temp(N);
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (std::size_t i = 0; i < fourth; ++i) {
-        temp[i] = v[radix * i]; // v0
-        temp[i + fourth] = v[radix * i + 1]; // v1
-        temp[i + 2 * fourth] = v[radix * i + 2]; // v2
-        temp[i + 3 * fourth] = v[radix * i + 3]; // v3
+        std::size_t j = radix * i;
+        temp[i] = v[j]; // v0
+        temp[i + fourth] = v[j + 1]; // v1
+        temp[i + 2 * fourth] = v[j + 2]; // v2
+        temp[i + 3 * fourth] = v[j + 3]; // v3
     }
     std::copy(temp.begin(), temp.end(), v);
 
@@ -191,7 +231,13 @@ void CT_radix_4(Abstract_FFT& fft_obj) {
     fft_obj.partial_transform(v1, fourth);
     fft_obj.partial_transform(v2, fourth);
     fft_obj.partial_transform(v3, fourth);
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int k = 0; k < fourth; k++) {
         auto w = WKN(static_cast<int>(k), N_int);
         std::complex<double> a = v0[k];
@@ -217,13 +263,20 @@ void CT_radix_5(Abstract_FFT& fft_obj) {
     const std::size_t fifth = N / radix;
 
     std::vector<std::complex<double>> temp(N);
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (std::size_t i = 0; i < fifth; ++i) {
-        temp[i] = v[radix * i]; // v0
-        temp[i + fifth] = v[radix * i + 1]; // v1
-        temp[i + 2 * fifth] = v[radix * i + 2]; // v2
-        temp[i + 3 * fifth] = v[radix * i + 3]; // v3
-        temp[i + 4 * fifth] = v[radix * i + 4]; // v4
+        std::size_t j = radix * i;
+        temp[i] = v[j]; // v0
+        temp[i + fifth] = v[j + 1]; // v1
+        temp[i + 2 * fifth] = v[j + 2]; // v2
+        temp[i + 3 * fifth] = v[j + 3]; // v3
+        temp[i + 4 * fifth] = v[j + 4]; // v4
     }
     std::copy(temp.begin(), temp.end(), v);
 
@@ -239,7 +292,13 @@ void CT_radix_5(Abstract_FFT& fft_obj) {
     fft_obj.partial_transform(v3, fifth);
     fft_obj.partial_transform(v4, fifth);
 
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int k = 0; k < fifth; k++) {
         auto w = WKN(static_cast<int>(k), N_int);
         std::complex<double> a = v0[k];
@@ -270,15 +329,22 @@ void CT_radix_7(Abstract_FFT& fft_obj) {
     const std::size_t seventh = N / radix;
 
     std::vector<std::complex<double>> temp(N);
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (std::size_t i = 0; i < seventh; ++i) {
-        temp[i] = v[radix * i]; // v0
-        temp[i + seventh] = v[radix * i + 1]; // v1
-        temp[i + 2 * seventh] = v[radix * i + 2]; // v2
-        temp[i + 3 * seventh] = v[radix * i + 3]; // v3
-        temp[i + 4 * seventh] = v[radix * i + 4]; // v4
-        temp[i + 5 * seventh] = v[radix * i + 5]; // v4
-        temp[i + 6 * seventh] = v[radix * i + 6]; // v6
+        std::size_t j = radix * i;
+        temp[i] = v[j]; // v0
+        temp[i + seventh] = v[j + 1]; // v1
+        temp[i + 2 * seventh] = v[j + 2]; // v2
+        temp[i + 3 * seventh] = v[j + 3]; // v3
+        temp[i + 4 * seventh] = v[j + 4]; // v4
+        temp[i + 5 * seventh] = v[j + 5]; // v4
+        temp[i + 6 * seventh] = v[j + 6]; // v6
     }
     std::copy(temp.begin(), temp.end(), v);
 
@@ -298,7 +364,13 @@ void CT_radix_7(Abstract_FFT& fft_obj) {
     fft_obj.partial_transform(v5, seventh);
     fft_obj.partial_transform(v6, seventh);
 
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int k = 0; k < seventh; k++) {
         auto w = WKN(static_cast<int>(k), N_int);
         std::complex<double> a = v0[k];
@@ -335,16 +407,23 @@ void CT_radix_8(Abstract_FFT& fft_obj) {
     const std::size_t eighth = N / radix;
 
     std::vector<std::complex<double>> temp(N);
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (std::size_t i = 0; i < eighth; ++i) {
-        temp[i] = v[radix * i]; // v0
-        temp[i + eighth] = v[radix * i + 1]; // v1
-        temp[i + 2 * eighth] = v[radix * i + 2]; // v2
-        temp[i + 3 * eighth] = v[radix * i + 3]; // v3
-        temp[i + 4 * eighth] = v[radix * i + 4]; // v4
-        temp[i + 5 * eighth] = v[radix * i + 5]; // v4
-        temp[i + 6 * eighth] = v[radix * i + 6]; // v6
-        temp[i + 7 * eighth] = v[radix * i + 7]; // v7
+        std::size_t j = radix * i;
+        temp[i] = v[j]; // v0
+        temp[i + eighth] = v[j + 1]; // v1
+        temp[i + 2 * eighth] = v[j + 2]; // v2
+        temp[i + 3 * eighth] = v[j + 3]; // v3
+        temp[i + 4 * eighth] = v[j + 4]; // v4
+        temp[i + 5 * eighth] = v[j + 5]; // v4
+        temp[i + 6 * eighth] = v[j + 6]; // v6
+        temp[i + 7 * eighth] = v[j + 7]; // v7
     }
     std::copy(temp.begin(), temp.end(), v);
 
@@ -366,7 +445,13 @@ void CT_radix_8(Abstract_FFT& fft_obj) {
     fft_obj.partial_transform(v6, static_cast<int>(eighth));
     fft_obj.partial_transform(v7, static_cast<int>(eighth));
 
-#pragma omp parallel for
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int k = 0; k < eighth; k++) {
         auto w = WKN(static_cast<int>(k), N_int);
         std::complex<double> a = v0[k];
@@ -416,7 +501,13 @@ float compare_data(const std::complex<double>* v, const int element_count){
     int sum_length = compare_length;
     if (sum_length > element_count)
         sum_length = element_count;
-#pragma omp parallel for reduction(+:sum)
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for reduction(+:sum)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int i = 0; i < sum_length; i++){
         sum += std::complex<double>(std::abs(v[i].real()), std::abs(v[i].imag()));
     }

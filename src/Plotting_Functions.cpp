@@ -7,7 +7,13 @@
 std::vector<float> pre_plot_vector(const std::complex<double>* v, const int element_count) {
     std::vector<float> plot_vector;
     plot_vector.resize(element_count);
-#pragma omp parallel for schedule(static)
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int i = 0; i < element_count; i++)
         plot_vector[i] = static_cast<float>(abs(v[i]));
     return plot_vector;
@@ -17,7 +23,13 @@ std::vector<float> post_plot_vector(const std::complex<double>* v, const int ele
     std::vector<float> plot_vector;
     plot_vector.resize(element_count);
     int dim = int(sqrt(element_count));
-#pragma omp parallel for schedule(static)
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(static)
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int i = 0; i < element_count; i++)
         plot_vector[i] = static_cast<float>(abs(v[i]));
     if ( dim%2 == 0){
@@ -26,7 +38,14 @@ std::vector<float> post_plot_vector(const std::complex<double>* v, const int ele
         int rotate = int(element_count*(3/2) - dim*((dim+1)/2));
         std::rotate(plot_vector.rbegin(), plot_vector.rbegin() + rotate, plot_vector.rend());
     }
-#pragma omp parallel for
+
+    #ifndef __HIP_DEVICE_COMPILE__
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #else
+    #warning "OpenMP not enabled: running loop serially"
+    #endif
+    #endif
     for (int j = 0; j < dim; j++){
         std::rotate(plot_vector.rbegin()+((dim)*j),
                     plot_vector.rbegin()+((dim)*j + int((dim)/2)),
