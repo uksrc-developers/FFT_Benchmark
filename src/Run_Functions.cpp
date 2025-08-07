@@ -3,9 +3,10 @@
 //
 #import "../include/Run_Functions.hpp"
 
-std::tuple<bool, bool, bool, bool, bool, int, int, float> retrieve_arguments(int argc, char **argv) {
+std::tuple<bool, bool, std::string, bool, bool, bool, int, int, float> retrieve_arguments(int argc, char **argv) {
     bool Mem_Run = false;
     bool Plot = false;
+    std::string file_name = "";
     bool FFTW = false;
     bool cuFFT = false;
     bool rocFFT = false;
@@ -18,6 +19,7 @@ std::tuple<bool, bool, bool, bool, bool, int, int, float> retrieve_arguments(int
         static option long_options[] = {
             {"Memory Count Run Bool",no_argument, nullptr,'e'},
             {"Plot Bool",no_argument, nullptr,'p'},
+            {"Output File Name", optional_argument, nullptr, 'o'},
             {"FFTW Bool",no_argument, nullptr,'f'},
             {"NVIDIA-cuFFT Bool",no_argument, nullptr,'n'},
             {"AMD-rocFFT Bool",no_argument, nullptr,'a'},
@@ -29,7 +31,7 @@ std::tuple<bool, bool, bool, bool, bool, int, int, float> retrieve_arguments(int
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        const int option = getopt_long(argc, argv, "epfnar:c:s:", long_options, &option_index);
+        const int option = getopt_long(argc, argv, "epo:fnar:c:s:", long_options, &option_index);
 
         /* Detect the end of the options. */
         if (option == -1)
@@ -39,6 +41,9 @@ std::tuple<bool, bool, bool, bool, bool, int, int, float> retrieve_arguments(int
                 Mem_Run = true;
             case 'p':
                 Plot = true;
+                break;
+            case 'o':
+                file_name = optarg;
                 break;
             case 'f':
                 FFTW = true;
@@ -74,7 +79,9 @@ std::tuple<bool, bool, bool, bool, bool, int, int, float> retrieve_arguments(int
                 abort();
         }
     }
-    return std::make_tuple(Mem_Run, Plot, FFTW, cuFFT, rocFFT, run_count, repeat_count, mem_start);
+    if (file_name=="")
+        file_name = "./output.txt";
+    return std::make_tuple(Mem_Run, Plot, file_name, FFTW, cuFFT, rocFFT, run_count, repeat_count, mem_start);
 }
 
 std::vector<int> get_elements(const int run_count) {

@@ -7,6 +7,7 @@
 #include <tuple>
 #include <vector>
 #include <cassert>
+#include <fstream>
 #include <getopt.h>
 #include <iostream>
 #include <stdexcept>
@@ -15,35 +16,11 @@
 #include "Plotting_Functions.hpp"
 #include "Data_Functions.hpp"
 
-std::tuple<bool, bool, bool, bool, bool, int, int, float> retrieve_arguments(int argc, char **argv);
+std::tuple<bool, bool, std::string, bool, bool, bool, int, int, float> retrieve_arguments(int argc, char **argv);
 
 std::vector<int> get_elements(int run_count);
 std::vector<float> linspace(float start, float end, int count);
 std::vector<float> get_memories(float start, int count);
-
-template<class FFT_Class>
-void memory_run(std::vector<float> const &memories, int runs, const bool plot){
-    for (float mem : memories){
-        FFT_Class fft_class(mem);
-#ifdef PYTHON_PLOTTING
-        if ( plot ){
-            fft_class.transform();
-            create_postplot(
-                fft_class,
-                fft_class.name()+" "+std::to_string(mem)+" MB" ,
-                fft_class.name() + "_transform_" + std::to_string(mem) + "MB"
-                );
-        }
-#endif
-        auto time = fft_class.time_transform(runs).count();
-        auto checksum = compare_data(fft_class.get_source(), fft_class.get_element_count());
-        std::cout << fft_class.name() << ",\t" <<
-                     fft_class.get_memory()/1000000 << ",\t" <<
-                     time << ",\t" <<
-                     checksum << "\n";
-    }
-}
-
 
 inline float memory_retrieve(const int element_count) {
     switch (element_count) {
@@ -59,7 +36,31 @@ inline float memory_retrieve(const int element_count) {
 }
 
 template<class FFT_Class>
-void element_run(std::vector<int> const &element_counts, int runs, const bool plot){
+void memory_run(std::vector<float> const &memories, int runs, const bool plot, std::ofstream& file){
+    for (float mem : memories){
+        FFT_Class fft_class(mem);
+#ifdef PYTHON_PLOTTING
+        if ( plot ){
+            fft_class.transform();
+            create_postplot(
+                fft_class,
+                fft_class.name()+" "+std::to_string(mem)+" MB" ,
+                fft_class.name() + "_transform_" + std::to_string(mem) + "MB"
+                );
+        }
+#endif
+        auto time = fft_class.time_transform(runs).count();
+        auto checksum = compare_data(fft_class.get_source(), fft_class.get_element_count());
+        file <<
+            fft_class.name() << ", " <<
+            fft_class.get_memory()/1000000 << ", " <<
+            time << ", " <<
+            checksum << "\n";
+    }
+}
+
+template<class FFT_Class>
+void element_run(std::vector<int> const &element_counts, int runs, const bool plot, std::ofstream& file){
     for (int element_count : element_counts){
         FFT_Class fft_class(element_count);
         if (fft_class.transform_fail) {
@@ -78,10 +79,11 @@ void element_run(std::vector<int> const &element_counts, int runs, const bool pl
 #endif
         auto time = fft_class.time_transform(runs).count();
         auto checksum = compare_data(fft_class.get_source(), fft_class.get_element_count());
-        std::cout << fft_class.name() << ",\t" <<
-                     std::to_string(memory_retrieve(element_count)) << ",\t" <<
-                     time << ",\t" <<
-                     checksum << "\n";
+        file <<
+            fft_class.name() << ", " <<
+            std::to_string(memory_retrieve(element_count)) << ", " <<
+            time << ", " <<
+            checksum << "\n";
     }
 }
 
