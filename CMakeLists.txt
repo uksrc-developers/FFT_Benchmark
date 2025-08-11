@@ -4,13 +4,21 @@ set( CMAKE_CXX_STANDARD 23 )
 
 set( SOURCES src/Data_Functions.cpp src/Run_Functions.cpp )
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
+find_package(OpenMP REQUIRED)
+
 option( ONEAPI "Enable OneAPI" OFF)
 if ( ONEAPI )
     set(ONEAPI_DIR "/opt/intel/oneapi/mkl/2025.1" CACHE PATH "Root directory of fftw3 installation")
+
     find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
-    set( LIBRARIES MKL::MKL)
+
+    set( LIBRARIES MKL::MKL OpenMP::OpenMP_CXX)
 else()
     set(FFTW3_DIR "/usr/local" CACHE PATH "Root directory of fftw3 installation")
+
     find_library(FFTW3_LIBRARY
             NAMES fftw3
             PATHS ${FFTW3_DIR}/lib /usr/lib /usr/local/lib
@@ -23,8 +31,9 @@ else()
     if(NOT FFTW3_LIBRARY AND NOT FFTW3_INCLUDE_DIR)
         message(FATAL_ERROR "fftw3 not found. Please specify FFTW3_DIR if it is in a non-standard location.")
     endif(NOT FFTW3_LIBRARY AND NOT FFTW3_INCLUDE_DIR)
+
     include_directories(${FFTW3_INCLUDE_DIR})
-    set( LIBRARIES ${FFTW3_LIBRARY})
+    set( LIBRARIES ${FFTW3_LIBRARY} OpenMP::OpenMP_CXX)
 endif()
 
 list( APPEND SOURCES src/FFTW_Class.cpp )
@@ -32,9 +41,11 @@ list( APPEND SOURCES src/FFTW_Class.cpp )
 option( PYTHON_PLOTTING "Enable matplotlib plotting of fft outputs." OFF )
 if( PYTHON_PLOTTING )
     find_package( PythonLibs )
+
     if( NOT PythonLibs_FOUND )
         message(FATAL_ERROR "PYTHON_PLOTTING set to ON. Unable to find PythonLibs.")
     endif( NOT PythonLibs_FOUND )
+
     include_directories( ${PYTHON_INCLUDE_DIRS} )
     list( APPEND SOURCES src/Plotting_Functions.cpp )
     list( APPEND LIBRARIES ${PYTHON_LIBRARIES} )
@@ -45,6 +56,7 @@ option( CUDA_FFT "Enable cuFFT." OFF )
 if ( CUDA_FFT )
     set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
     set(CUDA_DIR "/usr/local/cuda" CACHE PATH "Root directory of cuda installation")
+
     find_library(CUFFT_LIBRARY
             NAMES cufft
             PATHS ${CUDA_DIR}/lib64
@@ -56,7 +68,7 @@ if ( CUDA_FFT )
     if( NOT CUFFT_LIBRARY OR NOT CUFFT_INCLUDE_DIR )
         message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find cufft")
     endif()
-    include_directories( ${CUFFT_INCLUDE_DIR} )
+
     find_library(CUDART_LIBRARY
             NAMES cudart
             PATHS ${CUDA_DIR}/lib64
@@ -68,6 +80,8 @@ if ( CUDA_FFT )
     if( NOT CUDART_LIBRARY OR NOT CUDART_INCLUDE_DIR )
         message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find cuda_runtime")
     endif()
+
+    include_directories( ${CUFFT_INCLUDE_DIR} )
     include_directories( ${CUDART_INCLUDE_DIR} )
     list( APPEND SOURCES src/cuFFT_Class.cpp )
     list( APPEND LIBRARIES ${CUDART_LIBRARY} ${CUFFT_LIBRARY} )
@@ -77,6 +91,17 @@ endif( CUDA_FFT )
 option( ROC_FFT "Enable rocFFT." OFF )
 if( ROC_FFT )
     set(ROCM_DIR "/opt/rocm" CACHE PATH "Root directory of rocm installation")
+    if( NOT CUDA_FFT )
+        set( HIP_PLATFORM "amd" )
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__")
+    else()
+        set( HIP_PLATFORM "nvidia" )
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_NVIDIA__")
+    endif()
+    set(HIP_DIR "/opt/rocm" CACHE PATH "Root directory of rocm installation")
+
+    find_package(hip REQUIRED HINTS "${HIP_DIR}/lib/cmake/hip")
+
     find_library(ROCFFT_LIBRARY
             NAMES rocfft
             PATHS ${ROCM_DIR}/lib
@@ -88,23 +113,17 @@ if( ROC_FFT )
     if( NOT ROCFFT_LIBRARY OR NOT ROCFFT_INCLUDE_DIR )
         message(FATAL_ERROR "ROC_FFT set to ON. Unable to find rocfft")
     endif()
-    if( NOT CUDA_FFT )
-        set( CMAKE_CXX_FLAGS "amd" )
-    else()
-        set( HIP_PLATFORM "nvidia" )
-    endif()
-    set(HIP_DIR "/opt/rocm" CACHE PATH "Root directory of rocm installation")
-    find_package(hip REQUIRED HINTS "${HIP_DIR}/lib/cmake/hip")
+
     include_directories( ${ROCFFT_INCLUDE_DIR} ${HIP_INCLUDE_DIR} )
-    find_package(OpenMP REQUIRED)
     list( APPEND SOURCES src/rocFFT_Class.cpp )
-    list( APPEND LIBRARIES ${ROCFFT_LIBRARY} ${HIP_LIBRARY} OpenMP::OpenMP_CXX )
+    list( APPEND LIBRARIES ${ROCFFT_LIBRARY} ${HIP_LIBRARY} )
     add_definitions( -DROC_FFT )
 endif( ROC_FFT )
 
-
 add_executable( FFT_Bench main.cpp ${SOURCES} )
 target_include_directories(FFT_Bench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_link_libraries( FFT_Bench PRIVATE ${LIBRARIES} )
 
 include(CheckCXXSourceCompiles)
 set(CMAKE_REQUIRED_FLAGS "-mavx2 -mfma")
@@ -123,5 +142,3 @@ if (HAS_AVX2)
 else()
     message(WARNING "AVX2 not supported. Falling back to default.")
 endif()
-
-target_link_libraries( FFT_Bench ${LIBRARIES} )
