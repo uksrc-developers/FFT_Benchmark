@@ -9,13 +9,15 @@ find_package(Threads REQUIRED)
 
 find_package(OpenMP REQUIRED)
 
+set( LIBRARIES OpenMP::OpenMP_CXX Threads::Threads )
+
 option( ONEAPI "Enable OneAPI" OFF)
 if ( ONEAPI )
     set(ONEAPI_DIR "/opt/intel/oneapi/mkl/2025.1" CACHE PATH "Root directory of fftw3 installation")
 
     find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
 
-    set( LIBRARIES MKL::MKL OpenMP::OpenMP_CXX)
+    list( APPEND LIBRARIES MKL::MKL )
 else()
     set(FFTW3_DIR "/usr/local" CACHE PATH "Root directory of fftw3 installation")
 
@@ -33,7 +35,7 @@ else()
     endif(NOT FFTW3_LIBRARY AND NOT FFTW3_INCLUDE_DIR)
 
     include_directories(${FFTW3_INCLUDE_DIR})
-    set( LIBRARIES ${FFTW3_LIBRARY} OpenMP::OpenMP_CXX)
+    list( APPEND LIBRARIES ${FFTW3_LIBRARY} )
 endif()
 
 list( APPEND SOURCES src/FFTW_Class.cpp )
@@ -93,10 +95,10 @@ if( ROC_FFT )
     set(ROCM_DIR "/opt/rocm" CACHE PATH "Root directory of rocm installation")
     if( NOT CUDA_FFT )
         set( HIP_PLATFORM "amd" )
-        add_compile_options("-D__HIP_PLATFORM_AMD__")
+        add_compile_definitions(__HIP_PLATFORM_AMD__)
     else()
         set( HIP_PLATFORM "nvidia" )
-        add_compile_options("-D__HIP_PLATFORM_NVIDIA__")
+        add_compile_definitions(__HIP_PLATFORM_NVIDIA__)
     endif()
     set(HIP_DIR "/opt/rocm" CACHE PATH "Root directory of rocm installation")
 
