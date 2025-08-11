@@ -6,7 +6,7 @@
 rocFFT_Class::rocFFT_Class(const float memory_size){
     assert( rocfft_setup() == rocfft_status_success );
     vector_side = possible_vector_size(memory_size);
-    vector_element_count = pow(vector_side, 2);
+    vector_element_count = static_cast<int>(pow(vector_side, 2));
 
     level_check();
 }
@@ -88,6 +88,9 @@ void rocFFT_Class::level_check() {
             assert( rocfft_plan_destroy(p) == rocfft_status_success );
             p = nullptr;
         }
+    }
+    if (!split_found) {
+        transform_fail = true;
     }
 }
 
