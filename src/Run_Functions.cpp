@@ -86,12 +86,13 @@ std::tuple<bool, bool, std::string, bool, bool, bool, int, int, float> retrieve_
 
 std::vector<int> get_elements(const int run_count) {
     std::vector<int> element_counts = {
-        31360000, // ~500MB
-        63011844, // ~1GB
-        125440000, // ~2GB
-        248062500, // ~4GB
-        486202500, // ~8GB
-        992250000, // ~16GB
+//        31360000, // ~500MB
+//        63011844, // ~1GB
+//        125440000, // ~2GB
+//        248062500, // ~4GB
+//        486202500, // ~8GB
+//        992250000, // ~16GB
+        1864000000, // test only
         2007040000 // ~32GB
     };
     std::vector<int> requested(element_counts.begin(), element_counts.begin() + run_count);
