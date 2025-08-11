@@ -96,13 +96,15 @@ Once compiled and make has been run, calling this code uses the following inputs
 ### Outputs
 <details>
 <summary>Outputs</summary>
+
 The output of FFT_Benchmark is a text file with a small table. The table summarises the results. The columns are:
 FFT_Code, Mem_Size [MB], Avg_time[ms], and Check_Value. FFT_Code indicates which library was used to run the transform.
 Mem_Size is the size of the array that was transformed in [MB]. Avg_time[ms] is the sum of time each transform took divided by
 the number of runs that were performed. Check_Value is an output meant to assist in determining if the transform was computed.
 This last column may be removed in the future when better methods to catch failed transformations are implemented across 
 libraries.
-</details>>
+
+</details>
 
 ## Example usage
 
