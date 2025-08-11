@@ -22,6 +22,7 @@ ofstream output_file;
 
 void atexit_handler_1() {
     output_file << "Premature close" << endl;
+    output_file.flush();
     output_file.close();
 }
 
@@ -39,6 +40,7 @@ int main(int argc, char **argv) {
     if (Mem_Run) {
         output_file << "Repeating runs " << repeat_count << " times; With Memory Size\n";
         output_file << "FFT_Code,\tMem_Size[MB],\tAvg_time[ms],\tCheck_Value\n";
+        output_file.flush();
         vector<float> memories = get_memories(mem_start, run_count);
         if (FFTW){
             memory_run<FFTW_Class>(memories, run_count, Plot, output_file);
@@ -56,6 +58,7 @@ int main(int argc, char **argv) {
     } else {
         output_file << "Repeating runs " << repeat_count << " times; With elements.\n";
         output_file << "FFT_Code,\tMem_Size[MB],\tAvg_time[ms],\tCheck_Value\n";
+        output_file.flush();
         vector<int> elements = get_elements(run_count);
         if (FFTW){
             element_run<FFTW_Class>(elements, run_count, Plot, output_file);
@@ -72,6 +75,7 @@ int main(int argc, char **argv) {
         #endif
     }
     output_file << "Run_Finished\n";
+    output_file.flush();
     output_file.close();
     return 0;
 }

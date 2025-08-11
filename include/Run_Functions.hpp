@@ -56,6 +56,7 @@ void memory_run(std::vector<float> const &memories, int runs, const bool plot, s
             fft_class.get_memory()/1000000 << ", " <<
             time << ", " <<
             checksum << "\n";
+        file.flush();
     }
 }
 
@@ -84,6 +85,7 @@ void element_run(std::vector<int> const &element_counts, int runs, const bool pl
             std::to_string(memory_retrieve(element_count)) << ", " <<
             time << ", " <<
             checksum << "\n";
+        file.flush();
     }
 }
 
