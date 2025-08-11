@@ -51,18 +51,19 @@ Classes that inherit from `Abstract_FFT` may contain other functions, but should
 
 In order to build this benchmark, we use cmake. We recommend setting the following options.
 
-|          Option          |     Value(s)     |                                                       Description                                                        |
-|:------------------------:|:----------------:|:------------------------------------------------------------------------------------------------------------------------:|
-|   `CMAKE_CXX_COMPILER`   |   Ex: clang++    |                                        C++ compiler to use. Tested with clang++.                                         |
-| `CMAKE_EXE_LINKER_FLAGS` |   Ex: -fopenmp   | Options to pass to the linker tool. We recommend using some version of openmp to parallalise the for loops in this code. |
-|       `FFTW3_DIR`        | <\Path\To\FFTW3> |           Option to pass path to fftw3, if it is not in default installation directory. (default `/usr/local`)           |
-|        `CUDA_FFT`        |      ON/OFF      |                                    Option to turn on the cuFFT library. (default OFF)                                    |
-|        `CUDA_DIR`        | <\Path\To\CUDA>  |  Option to pass path to the CUDA libraries, if it is not in default installation directory.(default `/usr/local/cuda`)   |
-|        `ROC_FFT`         |      ON/OFF      |                                    Option to turn on the ROCm library.  (default OFF)                                    |
-|        `ROCM_DIR`        | <\Path\To\ROCm>  |        Option to pass path to ROCm library, if it is not in default installation directory.(default `/opt/rocm`)         |
-|                          |                  |                                                                                                                          |
-
--DROC_FFT=ON -S ./ -B ./debug-cmake
+|        Option        |       Value(s)       |                                                       Description                                                       |
+|:--------------------:|:--------------------:|:-----------------------------------------------------------------------------------------------------------------------:|
+|  `CMAKE_C_COMPILER`  |      Ex: clang       |                                         C compiler to user. Tested with clang.                                          |
+| `CMAKE_CXX_COMPILER` |     Ex: clang++      |                                        C++ compiler to use. Tested with clang++.                                        |
+|       `ONEAPI`       |        ON/OFF        |                    Option to turn on using oneApi mkl instead of default FFTW kernel. (default OFF)                     |
+|     `ONEAPI_DIR`     | <\Path\To\oneAPImkl> | Option to pass path to fftw3, if it is not in default installation directory. (default `/opt/intel/oneapi/mkl/2025.1`)  |
+|     `FFTW3_DIR`      |   <\Path\To\FFTW3>   |          Option to pass path to fftw3, if it is not in default installation directory. (default `/usr/local`)           |
+|  `PYTHON_PLOTTING`   |        ON/OFF        |                      Option to turn on the Python library for plotting FFT results. (default OFF)                       |
+|      `CUDA_FFT`      |        ON/OFF        |                                   Option to turn on the cuFFT library. (default OFF)                                    |
+|      `CUDA_DIR`      |   <\Path\To\CUDA>    |  Option to pass path to the CUDA libraries, if it is not in default installation directory.(default `/usr/local/cuda`)  |
+|      `ROC_FFT`       |        ON/OFF        |                                   Option to turn on the ROCm library.  (default OFF)                                    |
+|      `ROCM_DIR`      |   <\Path\To\ROCm>    |        Option to pass path to ROCm library, if it is not in default installation directory.(default `/opt/rocm`)        |
+|      `HIP_DIR`       |    <Path\To\hip>     | Option to pass path to hip library, if it is not in default installation directory.(default `/opt/rocm/lib/cmake/hip`)  |
 
 
 ##  In- and Outputs
@@ -70,23 +71,33 @@ In order to build this benchmark, we use cmake. We recommend setting the followi
 ### Inputs
 <details>
 <summary>Inputs</summary>
+Once compiled and make has been run, calling this code uses the following inputs
+
+| Option |           Value           |                                                                  Description                                                                   |
+|:------:|:-------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------:|
+|   -e   |           None            |                                 Flag that toggles running by memory size instead of element counts (Optional)                                  |
+|   -p   |           None            |                                        Flag to plot each FFT result of different sizes once (Optional)                                         |
+|   -o   | <\Path\to\output\file.txt |                                             Output file path. (Optional, Default "./default.txt")                                              |
+|   -f   |           None            |                                                Flag to toggle running FFTs with FFTW (Optional)                                                |
+|   -n   |           None            |                                               Flag to toggle running FFTs with cuFFT (Optional)                                                |
+|   -a   |           None            |                                              Flag to toggle running FFTs with rocFFT (Optional)                                                |
+|   -r   |            Int            |                          Int on how many different size runs to perform (min 1, if -e is not set, max 7, else no max)                          |
+|   -c   |            Int            |                                      Int on how often to repeat transforms for averaging results (min 1)                                       |
+|   -s   |           float           | If -e is set, this determines the starting size in memory to use. Units are in MB, all subsequent runs are double the size of the previous run |
 
 <details>
-<summary></summary>
-</details>
-
-</details>
 
 
 ### Outputs
 <details>
 <summary>Outputs</summary>
-
+The output of FFT_Benchmark is a text file with a small table. The table summarises the results. The columns are:
+FFT_Code, Mem_Size [MB], Avg_time[ms], and Check_Value. FFT_Code indicates which library was used to run the transform.
+Mem_Size is the size of the array that was transformed in [MB]. Avg_time[ms] is the sum of time each transform took divided by
+the number of runs that were performed. Check_Value is an output meant to assist in determining if the transform was computed.
+This last column may be removed in the future when better methods to catch failed transformations are implemented across 
+libraries.
 <details>
-<summary></summary>
-</details>
-
-</details>
 
 ## Example usage
 

@@ -100,9 +100,9 @@ if( ROC_FFT )
         set( HIP_PLATFORM "nvidia" )
         add_compile_definitions(__HIP_PLATFORM_NVIDIA__)
     endif()
-    set(HIP_DIR "/opt/rocm" CACHE PATH "Root directory of rocm installation")
+    set(HIP_DIR "/opt/rocm/lib/cmake/hip" CACHE PATH "Root directory of rocm installation")
 
-    find_package(hip REQUIRED HINTS "${HIP_DIR}/lib/cmake/hip")
+    find_package(hip REQUIRED HINTS "${HIP_DIR}")
 
     find_library(ROCFFT_LIBRARY
             NAMES rocfft
