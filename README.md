@@ -48,6 +48,10 @@ Classes that inherit from `Abstract_FFT` may contain other functions, but should
 </details>
 
 ## Installation
+<details>
+<summary>Installation</summary>
+
+
 
 In order to build this benchmark, we use cmake. We recommend setting the following options.
 
@@ -65,6 +69,7 @@ In order to build this benchmark, we use cmake. We recommend setting the followi
 |      `ROCM_DIR`      |   <\Path\To\ROCm>    |        Option to pass path to ROCm library, if it is not in default installation directory.(default `/opt/rocm`)        |
 |      `HIP_DIR`       |    <Path\To\hip>     | Option to pass path to hip library, if it is not in default installation directory.(default `/opt/rocm/lib/cmake/hip`)  |
 
+</details>
 
 ##  In- and Outputs
 
@@ -85,7 +90,7 @@ Once compiled and make has been run, calling this code uses the following inputs
 |   -c   |            Int            |                                      Int on how often to repeat transforms for averaging results (min 1)                                       |
 |   -s   |           float           | If -e is set, this determines the starting size in memory to use. Units are in MB, all subsequent runs are double the size of the previous run |
 
-<details>
+</details>
 
 
 ### Outputs
@@ -97,39 +102,24 @@ Mem_Size is the size of the array that was transformed in [MB]. Avg_time[ms] is 
 the number of runs that were performed. Check_Value is an output meant to assist in determining if the transform was computed.
 This last column may be removed in the future when better methods to catch failed transformations are implemented across 
 libraries.
-<details>
+</details>>
 
 ## Example usage
 
 <details>
 <summary>Example</summary>
-
-<details>
-<summary></summary>
-</details>
-
 </details>
 
 ## Software Requirements
 
 <details>
 <summary>Software Requirements</summary>
-
-<details>
-<summary></summary>
-</details>
-
 </details>
 
 ## Hardware Requirements
 
 <details>
 <summary>Hardware Requirements</summary>
-
-<details>
-<summary></summary>
-</details>
-
 </details>
 
 ## Directory Structure
@@ -140,12 +130,16 @@ libraries.
 FFT_Bench
 ├── include
 │   ├── Abstract_FFT.hpp
+│   ├── Run_Functions.hpp
 │   ├── Data_Functions.hpp
+│   ├── Plotting_Functions.hpp
 │   ├── FFTW_Class.hpp
 │   ├── cuFFT_Class.hpp
 │   └── rocFFT_Class.hpp
 ├── src
+│   ├── Run_Functions.cpp
 │   ├── Data_Functions.cpp
+│   ├── Plotting_Functions.cpp
 │   ├── FFTW_Class.cpp
 │   ├── cuFFT_Class.cpp
 │   └── rocFFT_Class.cpp
@@ -154,7 +148,6 @@ FFT_Bench
 └── README.md
 ```
 </details>
-
 
 # To Do
 
