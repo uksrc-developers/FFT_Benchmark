@@ -11,14 +11,14 @@ find_package(OpenMP REQUIRED)
 
 set( LIBRARIES OpenMP::OpenMP_CXX Threads::Threads )
 
-#option( ONEAPI "Enable OneAPI" OFF)
-#if ( ONEAPI )
-#    set(ONEAPI_DIR "/opt/intel/oneapi/mkl/2025.1" CACHE PATH "Root directory of fftw3 installation")
-#
-#    find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
-#
-#    list( APPEND LIBRARIES MKL::MKL )
-#else()
+option( ONEAPI "Enable OneAPI" OFF)
+if ( ONEAPI )
+    set(ONEAPI_DIR "/opt/intel/oneapi/mkl/2025.1" CACHE PATH "Root directory of fftw3 installation")
+
+    find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
+
+    list( APPEND LIBRARIES MKL::MKL )
+else()
     set(FFTW3_DIR "/usr/local" CACHE PATH "Root directory of fftw3 installation")
 
     find_library(FFTW3_LIBRARY
@@ -36,7 +36,7 @@ set( LIBRARIES OpenMP::OpenMP_CXX Threads::Threads )
 
     include_directories(${FFTW3_INCLUDE_DIR})
     list( APPEND LIBRARIES ${FFTW3_LIBRARY} )
-#endif()
+endif()
 
 list( APPEND SOURCES src/FFTW_Class.cpp )
 
