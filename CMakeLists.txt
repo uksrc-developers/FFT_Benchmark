@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 3.22 )
-project( FFT_Bench LANGUAGES CXX )
+project( FFT_Bench LANGUAGES C CXX )
 set( CMAKE_CXX_STANDARD 23 )
 
 set( SOURCES src/Data_Functions.cpp src/Run_Functions.cpp )
