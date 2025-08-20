@@ -1,7 +1,7 @@
 //
 // Created by marcuskeil on 05/08/25.
 //
-#import "../include/Run_Functions.hpp"
+#include "../include/Run_Functions.hpp"
 
 std::tuple<bool, bool, std::string, bool, bool, bool, int, int, float> retrieve_arguments(int argc, char **argv) {
     bool Mem_Run = false;

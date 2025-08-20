@@ -503,7 +503,7 @@ float compare_data(const std::complex<double>* v, const int element_count){
         sum_length = element_count;
     #ifndef __HIP_DEVICE_COMPILE__
     #ifdef _OPENMP
-    #pragma omp parallel for reduction(+:sum)
+    #pragma omp parallel for
     #else
     #warning "OpenMP not enabled: running loop serially"
     #endif
