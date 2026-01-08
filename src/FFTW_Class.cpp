@@ -7,7 +7,8 @@ FFTW_Class::FFTW_Class(const float memory_size){
     vector_side = possible_vector_size(memory_size);
     vector_element_count = static_cast<int>(pow(vector_side, 2));
     vector_memory_size = (vector_element_count*sizeof(std::complex<double>));
-
+    fftw_init_threads();
+    fftw_plan_with_nthreads(omp_get_max_threads());
     source_data = static_cast<std::complex<double> *>(malloc(vector_memory_size));
     fill_vector(source_data, vector_element_count);
 
@@ -25,6 +26,8 @@ FFTW_Class::FFTW_Class(const int element_count){
 
     source_data = static_cast<std::complex<double> *>(malloc(vector_memory_size));
     fill_vector(source_data, vector_element_count);
+    fftw_init_threads();
+    fftw_plan_with_nthreads(omp_get_max_threads());
 
     p = fftw_plan_dft_2d(vector_side, vector_side,
                          reinterpret_cast<fftw_complex *>(source_data),
@@ -58,5 +61,6 @@ std::chrono::duration<double, std::milli> FFTW_Class::time_transform(const int r
 FFTW_Class::~FFTW_Class() {
     fftw_destroy_plan(p);
     fftw_cleanup();
+    fftw_cleanup_threads();
     free(source_data);
 }

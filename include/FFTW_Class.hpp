@@ -12,6 +12,7 @@
 
 #include "Data_Functions.hpp"
 #include "Abstract_FFT.hpp"
+#include <omp.h>
 
 class FFTW_Class final : public Abstract_FFT{
     std::complex<double> *source_data{};
