@@ -61,7 +61,7 @@ In order to build this benchmark, we use cmake. We recommend setting the followi
 | `CMAKE_CXX_COMPILER` |     Ex: clang++      |                                        C++ compiler to use. Tested with clang++.                                        |
 |       `ONEAPI`       |        ON/OFF        |                    Option to turn on using oneApi mkl instead of default FFTW kernel. (default OFF)                     |
 |     `ONEAPI_DIR`     | <\Path\To\oneAPImkl> | Option to pass path to fftw3, if it is not in default installation directory. (default `/opt/intel/oneapi/mkl/2025.1`)  |
-|     `FFTW3_DIR`      |   <\Path\To\FFTW3>   |          Option to pass path to fftw3, if it is not in default installation directory. If it's not in the default directory but is in `LD_LIBRARY_PATH` you can do something like `"-lfftw3_omp -lfftw3 -lm"` (default `/usr/local`)           |
+|     `FFTW3_DIR`      |   <\Path\To\FFTW3>   |          Option to pass path to fftw3, if it is not in default installation directory. (default `/usr/local`)           |
 |  `PYTHON_PLOTTING`   |        ON/OFF        |                      Option to turn on the Python library for plotting FFT results. (default OFF)                       |
 |      `CUDA_FFT`      |        ON/OFF        |                                   Option to turn on the cuFFT library. (default OFF)                                    |
 |      `CUDA_DIR`      |   <\Path\To\CUDA>    |  Option to pass path to the CUDA libraries, if it is not in default installation directory.(default `/usr/local/cuda`)  |
