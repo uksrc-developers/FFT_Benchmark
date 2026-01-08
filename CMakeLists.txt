@@ -21,6 +21,10 @@ if ( ONEAPI )
 else()
     set(FFTW3_DIR "/usr/local" CACHE PATH "Root directory of fftw3 installation")
 
+    find_library(FFTW3_OMP_LIBRARY
+            NAMES fftw3_omp
+            PATHS ${FFTW3_DIR}/lib /usr/lib /usr/local/lib
+            NO_DEFAULT_PATH)
     find_library(FFTW3_LIBRARY
             NAMES fftw3
             PATHS ${FFTW3_DIR}/lib /usr/lib /usr/local/lib
@@ -36,6 +40,7 @@ else()
 
     include_directories(${FFTW3_INCLUDE_DIR})
     list( APPEND LIBRARIES ${FFTW3_LIBRARY} )
+    list( APPEND LIBRARIES ${FFTW3_OMP_LIBRARY} )
 endif()
 
 list( APPEND SOURCES src/FFTW_Class.cpp )
