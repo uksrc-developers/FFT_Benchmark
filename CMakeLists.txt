@@ -16,8 +16,12 @@ if ( ONEAPI )
     set(ONEAPI_DIR "/opt/intel/oneapi/mkl/2025.1" CACHE PATH "Root directory of fftw3 installation")
 
     find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
-
+    find_path(FFTW_INCLUDE_DIR
+           NAMES fftw3.h
+           PATHS ${ONEAPI_DIR}/include/fftw
     list( APPEND LIBRARIES MKL::MKL )
+    include_directories(${FFTW_INCLUDE_DIR})
+    
 else()
     set(FFTW3_DIR "/usr/local" CACHE PATH "Root directory of fftw3 installation")
 
