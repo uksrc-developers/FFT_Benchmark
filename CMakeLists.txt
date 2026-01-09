@@ -18,7 +18,7 @@ if ( ONEAPI )
     find_package(MKL CONFIG REQUIRED PATHS ${ONEAPI_DIR})
     find_path(FFTW_INCLUDE_DIR
            NAMES fftw3.h
-           PATHS ${ONEAPI_DIR}/include/fftw
+           PATHS ${ONEAPI_DIR}/include/fftw)
     list( APPEND LIBRARIES MKL::MKL )
     include_directories(${FFTW_INCLUDE_DIR})
     
