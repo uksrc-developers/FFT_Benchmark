@@ -1,6 +1,8 @@
 //
 // Created by marcuskeil on 31/01/25.
 //
+// Modified on 11/02/26 by Owain Kenway to change malloc behavior to match Cuda -> massive speedup!
+// Specifically -> do allocation of source data on the device.
 #include "../include/rocFFT_Class.hpp"
 
 rocFFT_Class::rocFFT_Class(const float memory_size){
@@ -21,7 +23,7 @@ rocFFT_Class::rocFFT_Class(const int element_count){
 
 void rocFFT_Class::level_check() {
     vector_memory_size = (vector_element_count*sizeof(std::complex<double>));
-    source_data = static_cast<std::complex<double> *>(malloc(vector_memory_size));
+    assert( hipMalloc(&source_data, vector_memory_size) == hipSuccess);
     fill_vector(source_data, vector_element_count);
 
     assert( hipSetDevice(0) == hipSuccess );
@@ -143,7 +145,7 @@ std::chrono::duration<double, std::milli> rocFFT_Class::time_transform(const int
 }
 
 rocFFT_Class::~rocFFT_Class() {
-    free(source_data);
+    assert( hipFree(source_data) == hipSuccess );
     assert( hipFree(gpu_source_data) == hipSuccess );
     gpu_source_data = nullptr;
 
