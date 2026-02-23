@@ -29,6 +29,17 @@ cuFFT_Class::cuFFT_Class(const float memory_size){ // memory_size given in MB
                 vector_element_count*sizeof(std::complex<double>),
                 cudaMemAttachGlobal
         );
+
+    int device;
+    cudaGetDevice(&device);
+
+    cudaMemAdvise(
+                source_data,
+                vector_element_count*sizeof(std::complex<double>),
+                cudaMemAdviseSetPreferredLocation,
+                device
+        );
+
     fill_vector(source_data, vector_element_count);
 
     level_check();
@@ -44,6 +55,17 @@ cuFFT_Class::cuFFT_Class(const int element_count){ // memory_size given in MB
                 vector_element_count*sizeof(std::complex<double>),
                 cudaMemAttachGlobal
         );
+
+    int device;
+    cudaGetDevice(&device);
+
+    cudaMemAdvise(
+                source_data,
+                vector_element_count*sizeof(std::complex<double>),
+                cudaMemAdviseSetPreferredLocation,
+                device
+        );
+
     fill_vector(source_data, vector_element_count);
 
     level_check();
