@@ -62,16 +62,17 @@ endif( PYTHON_PLOTTING )
 
 option( CUDA_FFT "Enable cuFFT." OFF )
 if ( CUDA_FFT )
-    set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
     set(CUDA_DIR "/usr/local/cuda" CACHE PATH "Root directory of cuda installation")
+    set(CUDA_MATH_DIR  ${CUDA_DIR} CACHE PATH "Directory containing cuFFT (if different from CUDA_DIR) installation")
+    set(CMAKE_CUDA_COMPILER ${CUDA_DIR}/bin/nvcc)
 
     find_library(CUFFT_LIBRARY
             NAMES cufft
-            PATHS ${CUDA_DIR}/lib64
+            PATHS ${CUDA_DIR}/lib64 ${CUDA_MATH_DIR}/lib64
             NO_DEFAULT_PATH)
     find_path(CUFFT_INCLUDE_DIR
             NAMES cufft.h
-            PATHS ${CUDA_DIR}/include
+            PATHS ${CUDA_DIR}/include ${CUDA_MATH_DIR}/include 
             NO_DEFAULT_PATH)
     if( NOT CUFFT_LIBRARY OR NOT CUFFT_INCLUDE_DIR )
         message(FATAL_ERROR "CUDA_FFT set to ON. Unable to find cufft")
