@@ -32,12 +32,13 @@ cuFFT_Class::cuFFT_Class(const float memory_size){ // memory_size given in MB
 
     int device;
     cudaGetDevice(&device);
-
+    
+    cudaMemLocation device_dev = { cudaMemLocationTypeDevice, device };
     cudaMemAdvise(
                 source_data,
                 vector_element_count*sizeof(std::complex<double>),
                 cudaMemAdviseSetPreferredLocation,
-                device
+                device_dev
         );
 
     fill_vector(source_data, vector_element_count);
@@ -59,11 +60,12 @@ cuFFT_Class::cuFFT_Class(const int element_count){ // memory_size given in MB
     int device;
     cudaGetDevice(&device);
 
+    cudaMemLocation device_dev = { cudaMemLocationTypeDevice, device };
     cudaMemAdvise(
                 source_data,
                 vector_element_count*sizeof(std::complex<double>),
                 cudaMemAdviseSetPreferredLocation,
-                device
+                device_dev
         );
 
     fill_vector(source_data, vector_element_count);
